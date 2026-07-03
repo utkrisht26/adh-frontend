@@ -1,0 +1,33 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "gen:api": "uv run python -c \"import json; from adh.channels.web.app import create_app; print(json.dumps(create_app().openapi()))\" > openapi.json && npx openapi-typescript openapi.json --output src/lib/api-types.ts"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.0.17",
+    "@fontsource/ibm-plex-sans": "^5.0.19",
+    "@tanstack/react-query": "^5.28.14",
+    "lucide-react": "^0.363.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-markdown": "^9.0.1",
+    "react-router-dom": "^6.22.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "openapi-typescript": "^6.7.5",
+    "oxlint": "^1.71.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1"
+  }
+}

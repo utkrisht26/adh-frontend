@@ -1,0 +1,95 @@
+:root {
+  color-scheme: light dark;
+  
+  /* Light theme defaults */
+  --paper: oklch(98.5% 0.004 90);
+  --surface: oklch(99.5% 0.003 90);
+  --surface-2: oklch(97% 0.004 90);
+  --ink: oklch(22% 0.01 80);
+  --ink-muted: oklch(46% 0.01 80);
+  --line: oklch(90% 0.005 80);
+  --accent: oklch(60% 0.12 210);
+  --accent-weak: oklch(60% 0.12 210 / 12%);
+
+  --kept: oklch(62% 0.15 150);
+  --kept-weak: oklch(62% 0.15 150 / 12%);
+  --dropped: oklch(70% 0.15 75);
+  --dropped-weak: oklch(70% 0.15 75 / 12%);
+  --pruned: oklch(58% 0.02 80);
+  --pruned-weak: oklch(58% 0.02 80 / 12%);
+  --failed: oklch(58% 0.20 25);
+  --failed-weak: oklch(58% 0.20 25 / 12%);
+  --saturated: oklch(55% 0.10 280);
+  --saturated-weak: oklch(55% 0.10 280 / 12%);
+  --running: var(--accent);
+  --running-weak: var(--accent-weak);
+
+  /* Radius */
+  --r-cell: 4px;
+  --r-panel: 8px;
+  --r-pill: 999px;
+  --r-flush: 0;
+
+  /* Shadows */
+  --shadow-1: 0 1px 2px oklch(0% 0 0 / 6%);
+
+  /* Motion */
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 260ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --paper: oklch(20% 0.008 90);
+    --surface: oklch(24% 0.008 90);
+    --surface-2: oklch(28% 0.008 90);
+    --ink: oklch(92% 0.006 90);
+    --ink-muted: oklch(68% 0.01 90);
+    --line: oklch(34% 0.01 90);
+    --accent: oklch(66% 0.10 210);
+    --accent-weak: oklch(66% 0.10 210 / 18%);
+
+    --kept: oklch(70% 0.14 150);
+    --kept-weak: oklch(70% 0.14 150 / 15%);
+    --dropped: oklch(78% 0.14 75);
+    --dropped-weak: oklch(78% 0.14 75 / 15%);
+    --pruned: oklch(62% 0.02 90);
+    --pruned-weak: oklch(62% 0.02 90 / 15%);
+    --failed: oklch(66% 0.18 25);
+    --failed-weak: oklch(66% 0.18 25 / 15%);
+    --saturated: oklch(66% 0.10 280);
+    --saturated-weak: oklch(66% 0.10 280 / 15%);
+    --running: var(--accent);
+    --running-weak: var(--accent-weak);
+
+    --shadow-1: 0 0 0 1px var(--line);
+  }
+}
+
+:root.dark {
+  --paper: oklch(20% 0.008 90);
+  --surface: oklch(24% 0.008 90);
+  --surface-2: oklch(28% 0.008 90);
+  --ink: oklch(92% 0.006 90);
+  --ink-muted: oklch(68% 0.01 90);
+  --line: oklch(34% 0.01 90);
+  --accent: oklch(66% 0.10 210);
+  --accent-weak: oklch(66% 0.10 210 / 18%);
+
+  --kept: oklch(70% 0.14 150);
+  --kept-weak: oklch(70% 0.14 150 / 15%);
+  --dropped: oklch(78% 0.14 75);
+  --dropped-weak: oklch(78% 0.14 75 / 15%);
+  --pruned: oklch(62% 0.02 90);
+  --pruned-weak: oklch(62% 0.02 90 / 15%);
+  --failed: oklch(66% 0.18 25);
+  --failed-weak: oklch(66% 0.18 25 / 15%);
+  --saturated: oklch(66% 0.10 280);
+  --saturated-weak: oklch(66% 0.10 280 / 15%);
+  --running: var(--accent);
+  --running-weak: var(--accent-weak);
+
+  --shadow-1: 0 0 0 1px var(--line);
+}
