@@ -5,31 +5,53 @@
 
 
 export interface paths {
-  "/api/jobs": {
+  "/api/crawl/jobs": {
     /** List Jobs */
-    get: operations["list_jobs_api_jobs_get"];
+    get: operations["list_jobs_api_crawl_jobs_get"];
     /** Submit Job */
-    post: operations["submit_job_api_jobs_post"];
+    post: operations["submit_job_api_crawl_jobs_post"];
   };
-  "/api/jobs/{job_id}": {
+  "/api/crawl/jobs/{job_id}": {
     /** Get Job */
-    get: operations["get_job_api_jobs__job_id__get"];
+    get: operations["get_job_api_crawl_jobs__job_id__get"];
   };
-  "/api/jobs/{job_id}/cancel": {
+  "/api/crawl/jobs/{job_id}/cancel": {
     /** Cancel Job */
-    post: operations["cancel_job_api_jobs__job_id__cancel_post"];
+    post: operations["cancel_job_api_crawl_jobs__job_id__cancel_post"];
   };
-  "/api/jobs/{job_id}/events": {
+  "/api/crawl/jobs/{job_id}/events": {
     /** Get Job Events */
-    get: operations["get_job_events_api_jobs__job_id__events_get"];
+    get: operations["get_job_events_api_crawl_jobs__job_id__events_get"];
+  };
+  "/api/crawl/healthz": {
+    /** Healthz */
+    get: operations["healthz_api_crawl_healthz_get"];
+  };
+  "/api/crawl/usage": {
+    /** Usage */
+    get: operations["usage_api_crawl_usage_get"];
+  };
+  "/api/runs": {
+    /** List Runs */
+    get: operations["list_runs_api_runs_get"];
+    /** Submit Run */
+    post: operations["submit_run_api_runs_post"];
+  };
+  "/api/runs/{run_id}": {
+    /** Get Run */
+    get: operations["get_run_api_runs__run_id__get"];
+  };
+  "/api/runs/{run_id}/approve": {
+    /** Approve Run */
+    post: operations["approve_run_api_runs__run_id__approve_post"];
+  };
+  "/api/runs/{run_id}/cancel": {
+    /** Cancel Run */
+    post: operations["cancel_run_api_runs__run_id__cancel_post"];
   };
   "/api/healthz": {
     /** Healthz */
     get: operations["healthz_api_healthz_get"];
-  };
-  "/api/usage": {
-    /** Usage */
-    get: operations["usage_api_usage_get"];
   };
 }
 
@@ -37,6 +59,24 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
+    /**
+     * ApprovalRequest
+     * @description POST body for the approve endpoint. Omitted ids -> approve every source.
+     */
+    ApprovalRequest: {
+      /** Approved Source Ids */
+      approved_source_ids?: string[] | null;
+      /**
+       * Approve Synthesis
+       * @default true
+       */
+      approve_synthesis?: boolean;
+      /**
+       * Reason
+       * @default
+       */
+      reason?: string;
+    };
     /**
      * CrawlJobRequest
      * @description What a client asks the service for. Everything beyond ``url`` is steering.
@@ -101,6 +141,72 @@ export interface components {
        */
       pin_locales?: boolean;
     };
+    /** DedupPolicy */
+    DedupPolicy: {
+      /**
+       * Method
+       * @default minhash
+       */
+      method?: string;
+      /**
+       * Ngram
+       * @default 5
+       */
+      ngram?: number;
+      /**
+       * Jaccard
+       * @default 0.8
+       */
+      jaccard?: number;
+      /**
+       * Scope
+       * @default per-shard
+       */
+      scope?: string;
+    };
+    /**
+     * Discovery
+     * @description WHERE to get the data — the system figures this out (§0.3 'Discovery-first').
+     */
+    Discovery: {
+      /** @default auto */
+      mode?: components["schemas"]["DiscoveryMode"];
+      /** Seeds */
+      seeds?: string[];
+      /**
+       * Approval Gate
+       * @default true
+       */
+      approval_gate?: boolean;
+      /** Channels */
+      channels?: components["schemas"]["SourceChannel"][];
+      constraints?: components["schemas"]["DiscoveryConstraints"];
+    };
+    /**
+     * DiscoveryConstraints
+     * @description Optional guardrails — NOT a list of where to look.
+     */
+    DiscoveryConstraints: {
+      /** Include Domains */
+      include_domains?: string[];
+      /** Exclude Domains */
+      exclude_domains?: string[];
+      /** Recency After */
+      recency_after?: string | null;
+      /**
+       * Respect Robots Txt
+       * @default true
+       */
+      respect_robots_txt?: boolean;
+    };
+    /**
+     * DiscoveryMode
+     * @description Where sources come from. The whole point: ``AUTO`` requires NO sources.
+     *
+     * See PHASE0-CONTRACT.md §0.3 ("Discovery-first").
+     * @enum {string}
+     */
+    DiscoveryMode: "auto" | "seeded" | "fixed";
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -148,6 +254,81 @@ export interface components {
        */
       pages_fetched?: number;
     };
+    /**
+     * JobSpec
+     * @description A request to build a dataset. The requester gives a goal — not sources.
+     */
+    JobSpec: {
+      /** Job Id */
+      job_id?: string | null;
+      /** Name */
+      name: string;
+      /** Description */
+      description: string;
+      /** Motivation */
+      motivation: string;
+      /** Intended Uses */
+      intended_uses: string[];
+      /** Out Of Scope Uses */
+      out_of_scope_uses?: string[];
+      verifiability_tier: components["schemas"]["VerifiabilityTier"];
+      /** Task Categories */
+      task_categories: string[];
+      /** Languages */
+      languages: string[];
+      /**
+       * Modality
+       * @default text
+       */
+      modality?: string;
+      target_size: components["schemas"]["TargetSize"];
+      /** Record Schema Ref */
+      record_schema_ref: string;
+      discovery?: components["schemas"]["Discovery"];
+      /** Allowed Licenses */
+      allowed_licenses: string[];
+      /**
+       * Pii Policy
+       * @default redact
+       */
+      pii_policy?: string;
+      /** Generator Models */
+      generator_models: string[];
+      judge_config?: components["schemas"]["JudgeConfig"] | null;
+      /** Generation Params */
+      generation_params?: {
+        [key: string]: unknown;
+      };
+      /**
+       * Diversity Strategy
+       * @default persona+evol
+       */
+      diversity_strategy?: string;
+      dedup_policy?: components["schemas"]["DedupPolicy"];
+      /** Decontaminate Against */
+      decontaminate_against?: string[];
+      /**
+       * Output Format
+       * @default parquet
+       */
+      output_format?: string;
+      /** Splits */
+      splits?: {
+        [key: string]: unknown;
+      };
+      /** Output License */
+      output_license: string;
+      /** Distribution Target */
+      distribution_target?: string | null;
+      /** Maintainer */
+      maintainer?: string | null;
+      /**
+       * Emit Datasheet
+       * @default true
+       */
+      emit_datasheet?: boolean;
+      limits?: components["schemas"]["Limits"];
+    };
     /** JobSummaryOut */
     JobSummaryOut: {
       /** Job Id */
@@ -170,6 +351,72 @@ export interface components {
       /** Created At */
       created_at: number;
     };
+    /**
+     * JudgeConfig
+     * @description LLM-jury configuration. MUST be >=2 disjoint families for Tier 2/3 (PoLL).
+     */
+    JudgeConfig: {
+      /** Models */
+      models: string[];
+      /** Rubric Ref */
+      rubric_ref?: string | null;
+      /**
+       * Min Score
+       * @default 3.5
+       */
+      min_score?: number;
+      /**
+       * Position Swap
+       * @default true
+       */
+      position_swap?: boolean;
+    };
+    /**
+     * Limits
+     * @description Circuit-breaker floor. Coverage-saturation is the *primary* stop signal.
+     */
+    Limits: {
+      /**
+       * Max Pages Scraped
+       * @default 5000
+       */
+      max_pages_scraped?: number;
+      /**
+       * Max Llm Tokens
+       * @default 50000000
+       */
+      max_llm_tokens?: number;
+      /**
+       * Max Storage Mb
+       * @default 20000
+       */
+      max_storage_mb?: number;
+      /**
+       * Max Runtime Seconds
+       * @default 28800
+       */
+      max_runtime_seconds?: number;
+      /**
+       * Max Cost Usd
+       * @default 250
+       */
+      max_cost_usd?: number;
+    };
+    /** MetricsOut */
+    MetricsOut: {
+      /**
+       * Pages Scraped
+       * @default 0
+       */
+      pages_scraped?: number;
+      /**
+       * Llm Tokens
+       * @default 0
+       */
+      llm_tokens?: number;
+      /** Cost Usd */
+      cost_usd?: number | null;
+    };
     /** PageOut */
     PageOut: {
       /** Url */
@@ -190,6 +437,131 @@ export interface components {
       /** Token Estimate */
       token_estimate?: number | null;
     };
+    /** PlanAspectOut */
+    PlanAspectOut: {
+      /** Aspect Id */
+      aspect_id: string;
+      /** Topic */
+      topic: string;
+      /**
+       * Rationale
+       * @default
+       */
+      rationale?: string;
+      /** Keywords */
+      keywords?: string[];
+    };
+    /** PlanOut */
+    PlanOut: {
+      /** Job Id */
+      job_id: string;
+      /** Sources */
+      sources?: components["schemas"]["PlanSourceOut"][];
+      /** Synthesis Aspects */
+      synthesis_aspects?: components["schemas"]["PlanAspectOut"][];
+      /** Aspects */
+      aspects?: components["schemas"]["PlanAspectOut"][];
+      /** Notes */
+      notes?: string[];
+    };
+    /** PlanSourceOut */
+    PlanSourceOut: {
+      /** Source Id */
+      source_id: string;
+      /** Channel */
+      channel: string;
+      /** Locator */
+      locator: string;
+      /** Title */
+      title: string;
+      /** Aspect Id */
+      aspect_id: string;
+      /**
+       * Snippet
+       * @default
+       */
+      snippet?: string;
+      /** License */
+      license?: string | null;
+      /** Published */
+      published?: string | null;
+      /**
+       * Discovered Via
+       * @default
+       */
+      discovered_via?: string;
+      /** Score */
+      score: number;
+      /** Shape Match */
+      shape_match: number;
+      /** Quality */
+      quality: number;
+      /** License Ok */
+      license_ok: boolean;
+      /** Freshness Ok */
+      freshness_ok: boolean;
+      /** Estimated Yield */
+      estimated_yield: number;
+      /**
+       * Notes
+       * @default
+       */
+      notes?: string;
+    };
+    /** RunOut */
+    RunOut: {
+      /** Run Id */
+      run_id: string;
+      /** Job Id */
+      job_id: string;
+      /** Status */
+      status: string;
+      /** Created At */
+      created_at: string;
+      /** Updated At */
+      updated_at: string;
+      /** Exit Reason */
+      exit_reason?: string | null;
+      /** Error */
+      error?: string | null;
+      plan?: components["schemas"]["PlanOut"] | null;
+      metrics?: components["schemas"]["MetricsOut"];
+      /** Notes */
+      notes?: string[];
+    };
+    /** RunSummaryOut */
+    RunSummaryOut: {
+      /** Run Id */
+      run_id: string;
+      /** Job Id */
+      job_id: string;
+      /** Status */
+      status: string;
+      /** Created At */
+      created_at: string;
+      /** Updated At */
+      updated_at: string;
+      /** Exit Reason */
+      exit_reason?: string | null;
+      /** Error */
+      error?: string | null;
+    };
+    /**
+     * SourceChannel
+     * @description The three Phase 0 acquisition channels, tried reuse > crawl > synthesize.
+     * @enum {string}
+     */
+    SourceChannel: "datasets" | "web" | "synthesis";
+    /**
+     * TargetSize
+     * @description Either a record count or a token budget (§0.3 ``target_size``).
+     */
+    TargetSize: {
+      /** Records */
+      records?: number | null;
+      /** Tokens */
+      tokens?: number | null;
+    };
     /** ValidationError */
     ValidationError: {
       /** Location */
@@ -203,6 +575,17 @@ export interface components {
       /** Context */
       ctx?: Record<string, never>;
     };
+    /**
+     * VerifiabilityTier
+     * @description How correctness is decided — the single most important job parameter.
+     *
+     * The tier selects the verification sub-graph (PHASE0-CONTRACT.md §0.2):
+     *   * HARD  — a deterministic function decides correctness (math/code/schema).
+     *   * SOFT  — no deterministic oracle; quality is graded by an LLM jury.
+     *   * HYBRID— deterministic gate first, LLM jury on the residual dimension.
+     * @enum {integer}
+     */
+    VerifiabilityTier: 1 | 2 | 3;
   };
   responses: never;
   parameters: never;
@@ -218,7 +601,7 @@ export type external = Record<string, never>;
 export interface operations {
 
   /** List Jobs */
-  list_jobs_api_jobs_get: {
+  list_jobs_api_crawl_jobs_get: {
     parameters: {
       query?: {
         status?: string | null;
@@ -240,7 +623,7 @@ export interface operations {
     };
   };
   /** Submit Job */
-  submit_job_api_jobs_post: {
+  submit_job_api_crawl_jobs_post: {
     requestBody: {
       content: {
         "application/json": components["schemas"]["CrawlJobRequest"];
@@ -264,7 +647,7 @@ export interface operations {
     };
   };
   /** Get Job */
-  get_job_api_jobs__job_id__get: {
+  get_job_api_crawl_jobs__job_id__get: {
     parameters: {
       query?: {
         include_content?: boolean;
@@ -289,7 +672,7 @@ export interface operations {
     };
   };
   /** Cancel Job */
-  cancel_job_api_jobs__job_id__cancel_post: {
+  cancel_job_api_crawl_jobs__job_id__cancel_post: {
     parameters: {
       path: {
         job_id: string;
@@ -313,7 +696,7 @@ export interface operations {
     };
   };
   /** Get Job Events */
-  get_job_events_api_jobs__job_id__events_get: {
+  get_job_events_api_crawl_jobs__job_id__events_get: {
     parameters: {
       query?: {
         since?: number;
@@ -340,7 +723,7 @@ export interface operations {
     };
   };
   /** Healthz */
-  healthz_api_healthz_get: {
+  healthz_api_crawl_healthz_get: {
     responses: {
       /** @description Successful Response */
       200: {
@@ -353,7 +736,124 @@ export interface operations {
     };
   };
   /** Usage */
-  usage_api_usage_get: {
+  usage_api_crawl_usage_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": {
+            [key: string]: unknown;
+          };
+        };
+      };
+    };
+  };
+  /** List Runs */
+  list_runs_api_runs_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["RunSummaryOut"][];
+        };
+      };
+    };
+  };
+  /** Submit Run */
+  submit_run_api_runs_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["JobSpec"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        content: {
+          "application/json": components["schemas"]["RunSummaryOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Get Run */
+  get_run_api_runs__run_id__get: {
+    parameters: {
+      path: {
+        run_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["RunOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Approve Run */
+  approve_run_api_runs__run_id__approve_post: {
+    parameters: {
+      path: {
+        run_id: string;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ApprovalRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["RunSummaryOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Cancel Run */
+  cancel_run_api_runs__run_id__cancel_post: {
+    parameters: {
+      path: {
+        run_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["RunSummaryOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Healthz */
+  healthz_api_healthz_get: {
     responses: {
       /** @description Successful Response */
       200: {
