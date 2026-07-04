@@ -1,0 +1,79 @@
+/* Shared surface primitives — reused across surfaces (DESIGN §5, §7).
+   Surface-specific layout lives in each feature's own .css. */
+
+/* Screen header */
+.screen-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-24);
+}
+.screen-title { font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; }
+.screen-subtitle { margin-top: 2px; font-size: var(--text-sm); color: var(--ink-muted); }
+.screen-actions { display: flex; gap: var(--space-8); }
+
+/* Panel */
+.panel { border: 1px solid var(--line); border-radius: var(--r-panel); background-color: var(--surface); }
+.panel--pad { padding: var(--space-16); }
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-8) var(--space-16);
+  border-bottom: 1px solid var(--line);
+}
+.panel__title { font-size: var(--text-base); font-weight: 600; }
+.panel__meta { font-size: var(--text-caption); color: var(--ink-muted); }
+
+/* Data table */
+.data-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); text-align: left; }
+.data-table thead tr {
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-muted);
+  font-weight: 500;
+  font-size: var(--text-caption);
+}
+.data-table th { padding: var(--space-8) var(--space-16); font-weight: 500; }
+.data-table td { padding: var(--space-8) var(--space-16); vertical-align: middle; }
+.data-table tbody tr { border-bottom: 1px solid var(--line); }
+.data-table__num { text-align: right; font-variant-numeric: tabular-nums; }
+.table-row-hover { cursor: pointer; transition: background-color var(--dur-fast) var(--ease-out); }
+.table-row-hover:hover { background-color: var(--surface-2); }
+
+/* Metric — big mono numerals (DESIGN §3 signature move) */
+.metric { border: 1px solid var(--line); border-radius: var(--r-panel); padding: var(--space-16); background-color: var(--surface); }
+.metric__label { display: block; margin-bottom: var(--space-8); font-size: var(--text-caption); font-weight: 500; color: var(--ink-muted); }
+.metric__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-metric);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink);
+}
+.metric__meta { display: flex; gap: var(--space-12); margin-top: var(--space-8); font-size: var(--text-caption); color: var(--ink-muted); }
+
+/* Callout — error */
+.callout-error {
+  display: flex;
+  gap: 10px;
+  padding: var(--space-16);
+  border: 1px solid var(--failed);
+  border-radius: var(--r-panel);
+  background-color: var(--failed-weak);
+  color: var(--failed);
+}
+.callout-error__title { font-size: var(--text-base); font-weight: 600; }
+.callout-error__body { font-size: var(--text-sm); }
+
+/* Empty state */
+.empty-state {
+  padding: var(--space-48) var(--space-16);
+  border: 1px dashed var(--line);
+  border-radius: var(--r-panel);
+  text-align: center;
+}
+.empty-state__text { margin-bottom: var(--space-16); font-size: var(--text-base); color: var(--ink-muted); }
+
+/* Utility */
+.text-muted { color: var(--ink-muted); }

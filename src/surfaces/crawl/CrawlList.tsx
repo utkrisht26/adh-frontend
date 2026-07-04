@@ -5,6 +5,7 @@ import { api } from '../../lib/api';
 import { StatusPill } from '../../components/ui/StatusPill';
 import { Button } from '../../components/ui/Button';
 import { AlertCircle, RotateCw, ExternalLink } from 'lucide-react';
+import './CrawlList.css';
 
 export const CrawlList: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ export const CrawlList: React.FC = () => {
   const { data: jobs = [], isLoading, isError, error, refetch } = useQuery({
     queryKey: ['jobs', statusFilter],
     queryFn: () => api.listJobs(statusFilter === 'all' ? undefined : statusFilter),
-    refetchInterval: 5000, // poll list every 5 seconds
+    refetchInterval: 5000,
   });
 
   const formatDuration = (sec: number) => {
@@ -24,15 +25,14 @@ export const CrawlList: React.FC = () => {
     return `${min}m ${Math.floor(s)}s`;
   };
 
-  const formatTime = (ts: number) => {
-    return new Date(ts * 1000).toLocaleString(undefined, {
+  const formatTime = (ts: number) =>
+    new Date(ts * 1000).toLocaleString(undefined, {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
     });
-  };
 
   const middleTruncate = (text: string, maxLen = 60) => {
     if (!text || text.length <= maxLen) return text;
@@ -43,16 +43,13 @@ export const CrawlList: React.FC = () => {
   const filterTabs = ['all', 'queued', 'running', 'succeeded', 'failed', 'cancelled'];
 
   return (
-    <div style={{ padding: '8px 4px' }}>
-      {/* Header Panel */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+    <div className="crawl-list">
+      <div className="screen-head">
         <div>
-          <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 600, letterSpacing: '-0.02em' }}>Crawl Jobs</h1>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--ink-muted)', marginTop: '2px' }}>
-            Data acquisition monitor and steering console.
-          </p>
+          <h1 className="screen-title">Crawl Jobs</h1>
+          <p className="screen-subtitle">Data acquisition monitor and steering console.</p>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="screen-actions">
           <Button onClick={() => refetch()} style={{ minHeight: '38px', minWidth: '38px', padding: '0 12px' }} title="Refresh list">
             <RotateCw size={14} className={isLoading ? 'pulse' : ''} />
           </Button>
@@ -62,55 +59,39 @@ export const CrawlList: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--line)', gap: '4px', marginBottom: '16px' }}>
+      <div className="crawl-list__tabs">
         {filterTabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setStatusFilter(tab)}
-            style={{
-              padding: '8px 16px',
-              border: 'none',
-              background: 'none',
-              fontSize: 'var(--text-sm)',
-              fontWeight: 500,
-              color: statusFilter === tab ? 'var(--accent)' : 'var(--ink-muted)',
-              borderBottom: statusFilter === tab ? '2px solid var(--accent)' : '2px solid transparent',
-              cursor: 'pointer',
-              textTransform: 'lowercase',
-              marginBottom: '-1px',
-              transition: 'all var(--dur-fast) var(--ease-out)',
-            }}
+            className={`crawl-list__tab ${statusFilter === tab ? 'crawl-list__tab--active' : ''}`}
           >
             {tab}
           </button>
         ))}
       </div>
 
-      {/* Loading Skeleton */}
       {isLoading && jobs.length === 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="crawl-list__skeletons">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="skeleton" style={{ height: '36px', width: '100%' }} />
           ))}
         </div>
       )}
 
-      {/* Error state */}
       {isError && (
-        <div style={{ display: 'flex', gap: '10px', color: 'var(--failed)', border: '1px solid var(--failed)', padding: '16px', borderRadius: 'var(--r-panel)', backgroundColor: 'var(--failed-weak)', marginBottom: '16px' }}>
+        <div className="callout-error" style={{ marginBottom: 'var(--space-16)' }}>
           <AlertCircle size={20} style={{ flexShrink: 0 }} />
           <div>
-            <h3 style={{ fontWeight: 600, fontSize: 'var(--text-base)' }}>Failed to load jobs</h3>
-            <p style={{ fontSize: 'var(--text-sm)' }}>{(error as Error).message}</p>
+            <h3 className="callout-error__title">Failed to load jobs</h3>
+            <p className="callout-error__body">{(error as Error).message}</p>
           </div>
         </div>
       )}
 
-      {/* Empty State */}
       {!isLoading && !isError && jobs.length === 0 && (
-        <div style={{ border: '1px dashed var(--line)', borderRadius: 'var(--r-panel)', padding: '48px 16px', textAlign: 'center' }}>
-          <p style={{ color: 'var(--ink-muted)', fontSize: 'var(--text-base)', marginBottom: '16px' }}>
+        <div className="empty-state">
+          <p className="empty-state__text">
             {statusFilter === 'all' ? 'No crawls yet. Start one.' : `No jobs match status filter "${statusFilter}".`}
           </p>
           {statusFilter === 'all' && (
@@ -121,98 +102,50 @@ export const CrawlList: React.FC = () => {
         </div>
       )}
 
-      {/* Dense Data Table */}
       {!isLoading && !isError && jobs.length > 0 && (
-        <div style={{ overflowX: 'auto', border: '1px solid var(--line)', borderRadius: 'var(--r-panel)', backgroundColor: 'var(--surface)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)', textAlign: 'left' }}>
+        <div className="panel crawl-list__table-wrap">
+          <table className="data-table">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--line)', color: 'var(--ink-muted)', fontWeight: 500, fontSize: 'var(--text-caption)' }}>
-                <th style={{ padding: '8px 16px', width: '160px' }}>Job ID</th>
-                <th style={{ padding: '8px 16px', width: '120px' }}>Status</th>
-                <th style={{ padding: '8px 16px' }}>Seed URL</th>
-                <th style={{ padding: '8px 16px', textAlign: 'right', width: '140px' }}>Pages (Kept/Fetched)</th>
-                <th style={{ padding: '8px 16px', textAlign: 'right', width: '100px' }}>Duration</th>
-                <th style={{ padding: '8px 16px', textAlign: 'right', width: '180px' }}>Created At</th>
+              <tr>
+                <th style={{ width: '160px' }}>Job ID</th>
+                <th style={{ width: '120px' }}>Status</th>
+                <th>Seed URL</th>
+                <th className="data-table__num" style={{ width: '140px' }}>Pages (Kept/Fetched)</th>
+                <th className="data-table__num" style={{ width: '100px' }}>Duration</th>
+                <th className="data-table__num" style={{ width: '180px' }}>Created At</th>
               </tr>
             </thead>
             <tbody>
               {jobs.map((job) => (
-                <tr
-                  key={job.job_id}
-                  style={{
-                    borderBottom: '1px solid var(--line)',
-                    cursor: 'pointer',
-                    transition: 'background-color var(--dur-fast) var(--ease-out)',
-                  }}
-                  className="table-row-hover"
-                  onClick={() => navigate(`/crawl/${job.job_id}`)}
-                >
-                  {/* Job ID */}
-                  <td style={{ padding: '8px 16px', verticalAlign: 'middle' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <span className="mono" style={{ fontWeight: 500 }}>{job.job_id}</span>
+                <tr key={job.job_id} className="table-row-hover" onClick={() => navigate(`/crawl/${job.job_id}`)}>
+                  <td>
+                    <div className="crawl-list__id mono">
+                      <span>{job.job_id}</span>
                       <ExternalLink size={12} style={{ color: 'var(--ink-muted)' }} />
                     </div>
                   </td>
-                  {/* Status */}
-                  <td style={{ padding: '8px 16px', verticalAlign: 'middle' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <td>
+                    <div className="crawl-list__status">
                       <StatusPill status={job.status} />
-                      {job.saturated && (
-                        <span
-                          style={{
-                            fontSize: '10px',
-                            backgroundColor: 'var(--saturated-weak)',
-                            color: 'var(--saturated)',
-                            border: '1px solid var(--saturated)',
-                            padding: '1px 4px',
-                            borderRadius: '4px',
-                            fontWeight: 600,
-                            textTransform: 'lowercase',
-                          }}
-                        >
-                          saturated
-                        </span>
-                      )}
+                      {job.saturated && <span className="badge-saturated">saturated</span>}
                     </div>
                   </td>
-                  {/* Seed URL */}
-                  <td style={{ padding: '8px 16px', verticalAlign: 'middle' }} title={job.url}>
-                    <span className="mono" style={{ color: 'var(--ink-muted)' }}>
-                      {middleTruncate(job.url, 70)}
-                    </span>
+                  <td title={job.url}>
+                    <span className="mono num-muted">{middleTruncate(job.url, 70)}</span>
                   </td>
-                  {/* Pages kept/fetched */}
-                  <td style={{ padding: '8px 16px', textAlign: 'right', verticalAlign: 'middle' }} className="mono">
-                    <span style={{ fontWeight: 500, color: 'var(--kept)' }}>{job.n_pages}</span>
-                    <span style={{ color: 'var(--line)', margin: '0 4px' }}>/</span>
-                    <span style={{ color: 'var(--ink-muted)' }}>{job.pages_fetched}</span>
+                  <td className="data-table__num mono">
+                    <span className="num-kept">{job.n_pages}</span>
+                    <span className="num-sep">/</span>
+                    <span className="num-muted">{job.pages_fetched}</span>
                   </td>
-                  {/* Duration */}
-                  <td style={{ padding: '8px 16px', textAlign: 'right', verticalAlign: 'middle' }} className="mono">
-                    {formatDuration(job.duration)}
-                  </td>
-                  {/* Created At */}
-                  <td style={{ padding: '8px 16px', textAlign: 'right', verticalAlign: 'middle', color: 'var(--ink-muted)' }}>
-                    {formatTime(job.created_at)}
-                  </td>
+                  <td className="data-table__num mono">{formatDuration(job.duration)}</td>
+                  <td className="data-table__num num-muted">{formatTime(job.created_at)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      
-      {/* Custom Styles for row hover */}
-      <style>{`
-        .table-row-hover:hover {
-          background-color: var(--surface-2);
-        }
-        .preset-chip:hover {
-          background-color: var(--surface-2);
-          border-color: var(--ink-muted);
-        }
-      `}</style>
     </div>
   );
 };

@@ -1,7 +1,27 @@
 import React from 'react';
-import { Play, CheckCircle2, AlertTriangle, Ban, HelpCircle, Inbox, EyeOff, ShieldAlert, Award } from 'lucide-react';
+import {
+  Play,
+  CheckCircle2,
+  AlertTriangle,
+  Ban,
+  Inbox,
+  EyeOff,
+  ShieldAlert,
+  Award,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import './StatusPill.css';
 
-export type StatusType = 'queued' | 'running' | 'succeeded' | 'kept' | 'failed' | 'cancelled' | 'dropped' | 'pruned' | 'saturated';
+export type StatusType =
+  | 'queued'
+  | 'running'
+  | 'succeeded'
+  | 'kept'
+  | 'failed'
+  | 'cancelled'
+  | 'dropped'
+  | 'pruned'
+  | 'saturated';
 
 interface StatusPillProps {
   status: StatusType;
@@ -9,83 +29,23 @@ interface StatusPillProps {
   style?: React.CSSProperties;
 }
 
+const CONFIG: Record<StatusType, { modifier: string; Icon: LucideIcon; label: string }> = {
+  queued: { modifier: 'muted', Icon: Inbox, label: 'queued' },
+  running: { modifier: 'running', Icon: Play, label: 'running' },
+  succeeded: { modifier: 'kept', Icon: CheckCircle2, label: 'succeeded' },
+  kept: { modifier: 'kept', Icon: CheckCircle2, label: 'kept' },
+  failed: { modifier: 'failed', Icon: ShieldAlert, label: 'failed' },
+  cancelled: { modifier: 'muted', Icon: Ban, label: 'cancelled' },
+  dropped: { modifier: 'dropped', Icon: EyeOff, label: 'dropped' },
+  pruned: { modifier: 'pruned', Icon: AlertTriangle, label: 'pruned' },
+  saturated: { modifier: 'saturated', Icon: Award, label: 'saturated' },
+};
+
 export const StatusPill: React.FC<StatusPillProps> = ({ status, className = '', style }) => {
-  let label = status;
-  let bg = '';
-  let text = '';
-  let Icon = HelpCircle;
-
-  switch (status) {
-    case 'queued':
-      label = 'queued';
-      bg = 'var(--surface-2)';
-      text = 'var(--ink-muted)';
-      Icon = Inbox;
-      break;
-    case 'running':
-      label = 'running';
-      bg = 'var(--accent-weak)';
-      text = 'var(--accent)';
-      Icon = Play;
-      break;
-    case 'succeeded':
-    case 'kept':
-      label = status === 'succeeded' ? 'succeeded' : 'kept';
-      bg = 'var(--kept-weak)';
-      text = 'var(--kept)';
-      Icon = CheckCircle2;
-      break;
-    case 'failed':
-      label = 'failed';
-      bg = 'var(--failed-weak)';
-      text = 'var(--failed)';
-      Icon = ShieldAlert;
-      break;
-    case 'cancelled':
-      label = 'cancelled';
-      bg = 'var(--surface-2)';
-      text = 'var(--ink-muted)';
-      Icon = Ban;
-      break;
-    case 'dropped':
-      label = 'dropped';
-      bg = 'var(--dropped-weak)';
-      text = 'var(--dropped)';
-      Icon = EyeOff;
-      break;
-    case 'pruned':
-      label = 'pruned';
-      bg = 'var(--pruned-weak)';
-      text = 'var(--pruned)';
-      Icon = AlertTriangle;
-      break;
-    case 'saturated':
-      label = 'saturated';
-      bg = 'var(--saturated-weak)';
-      text = 'var(--saturated)';
-      Icon = Award;
-      break;
-  }
-
+  const { modifier, Icon, label } = CONFIG[status];
+  const pulse = status === 'running' ? 'pulse' : '';
   return (
-    <div
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '4px',
-        backgroundColor: bg,
-        color: text,
-        padding: '2px 8px',
-        borderRadius: 'var(--r-pill)',
-        fontSize: 'var(--text-caption)',
-        fontWeight: 500,
-        fontFamily: 'var(--font-sans)',
-        border: '1px solid var(--line)',
-        textTransform: 'lowercase',
-        ...style,
-      }}
-      className={`${status === 'running' ? 'pulse' : ''} ${className}`}
-    >
+    <div className={`status-pill status-pill--${modifier} ${pulse} ${className}`.trim()} style={style}>
       <Icon size={12} strokeWidth={2.5} aria-hidden="true" />
       <span>{label}</span>
     </div>

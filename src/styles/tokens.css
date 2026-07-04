@@ -93,3 +93,24 @@
 
   --shadow-1: 0 0 0 1px var(--line);
 }
+
+/* Space scale (4px base) — DESIGN §4.4 */
+:root {
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  /* Z-index scale — DESIGN §4.4 */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-jump: 20;
+  --z-dropdown: 100;
+  --z-modal: 1000;
+  --z-toast: 1100;
+}

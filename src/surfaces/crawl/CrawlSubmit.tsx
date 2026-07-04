@@ -5,6 +5,7 @@ import { api } from '../../lib/api';
 import type { CrawlJobRequest } from '../../lib/api';
 import { Button } from '../../components/ui/Button';
 import { AlertCircle, Sparkles, Plus, X } from 'lucide-react';
+import './CrawlSubmit.css';
 
 interface Preset {
   name: string;
@@ -37,7 +38,7 @@ const DEFAULT_PRESETS: Preset[] = [
     keywords: ['modules', 'standard', 'builtin', 'functions'],
     judge: 'none',
     content_threshold: 0.0,
-  }
+  },
 ];
 
 const MODEL_RATES: Record<string, { input: number; output: number }> = {
@@ -53,7 +54,6 @@ export const CrawlSubmit: React.FC = () => {
   const navigate = useNavigate();
   const [presets, setPresets] = useState<Preset[]>([]);
 
-  // Form state
   const [url, setUrl] = useState('');
   const [maxPages, setMaxPages] = useState(8);
   const [maxFetches, setMaxFetches] = useState<number | ''>('');
@@ -66,19 +66,16 @@ export const CrawlSubmit: React.FC = () => {
   const [collapseVersions, setCollapseVersions] = useState(false);
   const [pinLocales, setPinLocales] = useState(false);
 
-  // List arrays
   const [keywords, setKeywords] = useState<string[]>([]);
   const [includeDomains, setIncludeDomains] = useState<string[]>([]);
   const [excludeDomains, setExcludeDomains] = useState<string[]>([]);
   const [allowedLocales, setAllowedLocales] = useState<string[]>([]);
 
-  // Input text helper states
   const [kwInput, setKwInput] = useState('');
   const [incDomInput, setIncDomInput] = useState('');
   const [excDomInput, setExcDomInput] = useState('');
   const [localeInput, setLocaleInput] = useState('');
 
-  // Load presets
   useEffect(() => {
     const saved = localStorage.getItem('adh_crawl_presets');
     if (saved) {
@@ -125,14 +122,13 @@ export const CrawlSubmit: React.FC = () => {
     localStorage.setItem('adh_crawl_presets', JSON.stringify(updated));
   };
 
-  // List helpers
   const addKeyword = () => {
     if (kwInput.trim() && !keywords.includes(kwInput.trim())) {
       setKeywords([...keywords, kwInput.trim()]);
       setKwInput('');
     }
   };
-  const removeKeyword = (val: string) => setKeywords(keywords.filter(k => k !== val));
+  const removeKeyword = (val: string) => setKeywords(keywords.filter((k) => k !== val));
 
   const addIncDomain = () => {
     if (incDomInput.trim() && !includeDomains.includes(incDomInput.trim())) {
@@ -140,7 +136,7 @@ export const CrawlSubmit: React.FC = () => {
       setIncDomInput('');
     }
   };
-  const removeIncDomain = (val: string) => setIncludeDomains(includeDomains.filter(d => d !== val));
+  const removeIncDomain = (val: string) => setIncludeDomains(includeDomains.filter((d) => d !== val));
 
   const addExcDomain = () => {
     if (excDomInput.trim() && !excludeDomains.includes(excDomInput.trim())) {
@@ -148,7 +144,7 @@ export const CrawlSubmit: React.FC = () => {
       setExcDomInput('');
     }
   };
-  const removeExcDomain = (val: string) => setExcludeDomains(excludeDomains.filter(d => d !== val));
+  const removeExcDomain = (val: string) => setExcludeDomains(excludeDomains.filter((d) => d !== val));
 
   const addLocale = () => {
     if (localeInput.trim() && !allowedLocales.includes(localeInput.trim())) {
@@ -156,9 +152,8 @@ export const CrawlSubmit: React.FC = () => {
       setLocaleInput('');
     }
   };
-  const removeLocale = (val: string) => setAllowedLocales(allowedLocales.filter(l => l !== val));
+  const removeLocale = (val: string) => setAllowedLocales(allowedLocales.filter((l) => l !== val));
 
-  // Mutation
   const mutation = useMutation({
     mutationFn: (data: CrawlJobRequest) => api.submitJob(data),
     onSuccess: (data) => {
@@ -196,62 +191,31 @@ export const CrawlSubmit: React.FC = () => {
     mutation.mutate(payload);
   };
 
-  // Cost calculation (Pages * ~1000 input tokens, ~100 output tokens)
   const rates = MODEL_RATES[llmModel] || DEFAULT_RATES;
   const inputTokensPerPage = 1000;
   const outputTokensPerPage = 100;
-  const costPerPage = (inputTokensPerPage * rates.input) + (outputTokensPerPage * rates.output);
+  const costPerPage = inputTokensPerPage * rates.input + outputTokensPerPage * rates.output;
   const estimatedCost = maxPages * costPerPage;
   const totalEstimatedTokens = maxPages * (inputTokensPerPage + outputTokensPerPage);
 
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '16px 8px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 600 }}>Start Crawl Job</h1>
+    <div className="crawl-submit">
+      <div className="screen-head">
+        <h1 className="screen-title">Start Crawl Job</h1>
         <Button onClick={handleAddPreset} disabled={!url} style={{ minHeight: '36px' }}>
           Save Preset
         </Button>
       </div>
 
-      {/* Presets Row */}
       {presets.length > 0 && (
-        <div style={{ marginBottom: '24px' }}>
-          <span style={{ display: 'block', fontSize: 'var(--text-caption)', color: 'var(--ink-muted)', marginBottom: '8px', fontWeight: 500 }}>
-            Saved Presets
-          </span>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="crawl-submit__presets">
+          <span className="field-label-block">Saved Presets</span>
+          <div className="preset-chips">
             {presets.map((preset, index) => (
-              <div
-                key={index}
-                onClick={() => applyPreset(preset)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  backgroundColor: 'var(--surface)',
-                  border: '1px solid var(--line)',
-                  borderRadius: 'var(--r-pill)',
-                  padding: '4px 12px',
-                  cursor: 'pointer',
-                  fontSize: 'var(--text-sm)',
-                  transition: 'background-color var(--dur-fast) var(--ease-out)',
-                }}
-                className="preset-chip"
-              >
+              <div key={index} className="preset-chip" onClick={() => applyPreset(preset)}>
                 <span>{preset.name}</span>
                 {presets.length > 1 && (
-                  <button
-                    onClick={(e) => handleDeletePreset(index, e)}
-                    style={{
-                      border: 'none',
-                      background: 'none',
-                      color: 'var(--ink-muted)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: 0,
-                    }}
-                  >
+                  <button className="preset-chip__remove" onClick={(e) => handleDeletePreset(index, e)}>
                     <X size={12} />
                   </button>
                 )}
@@ -261,126 +225,59 @@ export const CrawlSubmit: React.FC = () => {
         </div>
       )}
 
-      {/* Single Column Form */}
-      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {/* Seed URL */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>Seed URL</label>
+      <form onSubmit={onSubmit} className="form">
+        <div className="field">
+          <label className="field__label">Seed URL</label>
           <input
             type="url"
             required
             placeholder="https://example.com/docs/"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              border: '1px solid var(--line)',
-              borderRadius: 'var(--r-cell)',
-              backgroundColor: 'var(--surface)',
-              minHeight: '44px',
-            }}
+            className="input"
           />
         </div>
 
-        {/* Budgets Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>Max Pages (Kept)</label>
-            <input
-              type="number"
-              min={1}
-              max={500}
-              required
-              value={maxPages}
-              onChange={(e) => setMaxPages(Number(e.target.value))}
-              style={{
-                padding: '8px 12px',
-                border: '1px solid var(--line)',
-                borderRadius: 'var(--r-cell)',
-                backgroundColor: 'var(--surface)',
-                minHeight: '44px',
-              }}
-            />
+        <div className="grid-3">
+          <div className="field">
+            <label className="field__label">Max Pages (Kept)</label>
+            <input type="number" min={1} max={500} required value={maxPages} onChange={(e) => setMaxPages(Number(e.target.value))} className="input" />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>Max Fetches (Optional)</label>
-            <input
-              type="number"
-              min={1}
-              placeholder="e.g. 32"
-              value={maxFetches}
-              onChange={(e) => setMaxFetches(e.target.value === '' ? '' : Number(e.target.value))}
-              style={{
-                padding: '8px 12px',
-                border: '1px solid var(--line)',
-                borderRadius: 'var(--r-cell)',
-                backgroundColor: 'var(--surface)',
-                minHeight: '44px',
-              }}
-            />
+          <div className="field">
+            <label className="field__label">Max Fetches (Optional)</label>
+            <input type="number" min={1} placeholder="e.g. 32" value={maxFetches} onChange={(e) => setMaxFetches(e.target.value === '' ? '' : Number(e.target.value))} className="input" />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>Max Depth</label>
-            <input
-              type="number"
-              min={0}
-              max={10}
-              required
-              value={maxDepth}
-              onChange={(e) => setMaxDepth(Number(e.target.value))}
-              style={{
-                padding: '8px 12px',
-                border: '1px solid var(--line)',
-                borderRadius: 'var(--r-cell)',
-                backgroundColor: 'var(--surface)',
-                minHeight: '44px',
-              }}
-            />
+          <div className="field">
+            <label className="field__label">Max Depth</label>
+            <input type="number" min={0} max={10} required value={maxDepth} onChange={(e) => setMaxDepth(Number(e.target.value))} className="input" />
           </div>
         </div>
 
-        {/* Keywords Chips */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>
-            Topic Keywords <span style={{ color: 'var(--ink-muted)', fontWeight: 400 }}>(steers crawler)</span>
+        <div className="field">
+          <label className="field__label">
+            Topic Keywords <span className="field__label-hint">(steers crawler)</span>
           </label>
-          <div style={{ display: 'flex', gap: '6px', marginBottom: keywords.length > 0 ? '8px' : 0, flexWrap: 'wrap' }}>
-            {keywords.map((kw, i) => (
-              <span
-                key={i}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  backgroundColor: 'var(--accent-weak)',
-                  color: 'var(--accent)',
-                  fontSize: 'var(--text-sm)',
-                  padding: '2px 8px',
-                  borderRadius: 'var(--r-pill)',
-                }}
-              >
-                {kw}
-                <button type="button" onClick={() => removeKeyword(kw)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                  <X size={12} color="var(--accent)" />
-                </button>
-              </span>
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          {keywords.length > 0 && (
+            <div className="chip-list" style={{ marginBottom: 'var(--space-8)' }}>
+              {keywords.map((kw, i) => (
+                <span key={i} className="chip chip--accent">
+                  {kw}
+                  <button type="button" className="chip__remove" onClick={() => removeKeyword(kw)}>
+                    <X size={12} color="var(--accent)" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="chip-input">
             <input
               type="text"
               placeholder="Add keyword..."
               value={kwInput}
               onChange={(e) => setKwInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addKeyword(); } }}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                border: '1px solid var(--line)',
-                borderRadius: 'var(--r-cell)',
-                backgroundColor: 'var(--surface)',
-                minHeight: '44px',
-              }}
+              className="input"
+              style={{ flex: 1 }}
             />
             <Button type="button" onClick={addKeyword} style={{ minHeight: '44px' }}>
               <Plus size={16} />
@@ -388,124 +285,81 @@ export const CrawlSubmit: React.FC = () => {
           </div>
         </div>
 
-        {/* Constraints Accordion / Section */}
-        <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--r-panel)', padding: '16px', backgroundColor: 'var(--surface)' }}>
-          <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, marginBottom: '12px' }}>Domains & Locales</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Allowed Locales */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: 'var(--text-sm)' }}>Allowed Locales (e.g. "en", "es")</label>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: allowedLocales.length > 0 ? '6px' : 0 }}>
-                {allowedLocales.map((l, i) => (
-                  <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--surface-2)', padding: '2px 8px', borderRadius: 'var(--r-pill)' }}>
-                    {l}
-                    <button type="button" onClick={() => removeLocale(l)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={12} /></button>
-                  </span>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="text"
-                  placeholder="en, fr..."
-                  value={localeInput}
-                  onChange={(e) => setLocaleInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addLocale(); } }}
-                  style={{ flex: 1, padding: '6px 10px', border: '1px solid var(--line)', borderRadius: 'var(--r-cell)', backgroundColor: 'var(--paper)', minHeight: '36px' }}
-                />
+        <div className="form-section">
+          <h2 className="form-section__title">Domains & Locales</h2>
+          <div className="form-section__body">
+            <div className="field">
+              <label className="field__label">Allowed Locales (e.g. "en", "es")</label>
+              {allowedLocales.length > 0 && (
+                <div className="chip-list" style={{ marginBottom: '6px' }}>
+                  {allowedLocales.map((l, i) => (
+                    <span key={i} className="chip chip--muted">
+                      {l}
+                      <button type="button" className="chip__remove" onClick={() => removeLocale(l)}><X size={12} /></button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="chip-input">
+                <input type="text" placeholder="en, fr..." value={localeInput} onChange={(e) => setLocaleInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addLocale(); } }} className="input input--sm" style={{ flex: 1 }} />
                 <Button type="button" onClick={addLocale} style={{ minHeight: '36px', padding: '0 12px' }}>Add</Button>
               </div>
             </div>
 
-            {/* Include Domains */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: 'var(--text-sm)' }}>Limit to Domains</label>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: includeDomains.length > 0 ? '6px' : 0 }}>
-                {includeDomains.map((d, i) => (
-                  <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--surface-2)', padding: '2px 8px', borderRadius: 'var(--r-pill)' }}>
-                    {d}
-                    <button type="button" onClick={() => removeIncDomain(d)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={12} /></button>
-                  </span>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="text"
-                  placeholder="sub.domain.com"
-                  value={incDomInput}
-                  onChange={(e) => setIncDomInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addIncDomain(); } }}
-                  style={{ flex: 1, padding: '6px 10px', border: '1px solid var(--line)', borderRadius: 'var(--r-cell)', backgroundColor: 'var(--paper)', minHeight: '36px' }}
-                />
+            <div className="field">
+              <label className="field__label">Limit to Domains</label>
+              {includeDomains.length > 0 && (
+                <div className="chip-list" style={{ marginBottom: '6px' }}>
+                  {includeDomains.map((d, i) => (
+                    <span key={i} className="chip chip--muted">
+                      {d}
+                      <button type="button" className="chip__remove" onClick={() => removeIncDomain(d)}><X size={12} /></button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="chip-input">
+                <input type="text" placeholder="sub.domain.com" value={incDomInput} onChange={(e) => setIncDomInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addIncDomain(); } }} className="input input--sm" style={{ flex: 1 }} />
                 <Button type="button" onClick={addIncDomain} style={{ minHeight: '36px', padding: '0 12px' }}>Add</Button>
               </div>
             </div>
 
-            {/* Exclude Domains */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: 'var(--text-sm)' }}>Exclude Domains</label>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: excludeDomains.length > 0 ? '6px' : 0 }}>
-                {excludeDomains.map((d, i) => (
-                  <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--surface-2)', padding: '2px 8px', borderRadius: 'var(--r-pill)' }}>
-                    {d}
-                    <button type="button" onClick={() => removeExcDomain(d)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={12} /></button>
-                  </span>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="text"
-                  placeholder="spam.com"
-                  value={excDomInput}
-                  onChange={(e) => setExcDomInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addExcDomain(); } }}
-                  style={{ flex: 1, padding: '6px 10px', border: '1px solid var(--line)', borderRadius: 'var(--r-cell)', backgroundColor: 'var(--paper)', minHeight: '36px' }}
-                />
+            <div className="field">
+              <label className="field__label">Exclude Domains</label>
+              {excludeDomains.length > 0 && (
+                <div className="chip-list" style={{ marginBottom: '6px' }}>
+                  {excludeDomains.map((d, i) => (
+                    <span key={i} className="chip chip--muted">
+                      {d}
+                      <button type="button" className="chip__remove" onClick={() => removeExcDomain(d)}><X size={12} /></button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="chip-input">
+                <input type="text" placeholder="spam.com" value={excDomInput} onChange={(e) => setExcDomInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addExcDomain(); } }} className="input input--sm" style={{ flex: 1 }} />
                 <Button type="button" onClick={addExcDomain} style={{ minHeight: '36px', padding: '0 12px' }}>Add</Button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Gating & Relevance */}
-        <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--r-panel)', padding: '16px', backgroundColor: 'var(--surface)' }}>
-          <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, marginBottom: '12px' }}>Content Quality & Relevance</h2>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Judge Select */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>Relevance Judge</label>
-              <select
-                value={judge}
-                onChange={(e) => setJudge(e.target.value as any)}
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid var(--line)',
-                  borderRadius: 'var(--r-cell)',
-                  backgroundColor: 'var(--paper)',
-                  minHeight: '44px',
-                }}
-              >
+        <div className="form-section">
+          <h2 className="form-section__title">Content Quality & Relevance</h2>
+          <div className="form-section__body form-section__body--lg">
+            <div className="field">
+              <label className="field__label">Relevance Judge</label>
+              <select value={judge} onChange={(e) => setJudge(e.target.value as 'none' | 'bm25' | 'llm')} className="input input--paper">
                 <option value="none">none (Keep all fetched pages)</option>
                 <option value="bm25">bm25 (Keyword-based token scoring)</option>
                 <option value="llm">llm (Smart LLM judge verdict)</option>
               </select>
             </div>
 
-            {/* LLM Model Config */}
             {judge === 'llm' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>LLM Model</label>
-                <select
-                  value={llmModel}
-                  onChange={(e) => setLlmModel(e.target.value)}
-                  style={{
-                    padding: '8px 12px',
-                    border: '1px solid var(--line)',
-                    borderRadius: 'var(--r-cell)',
-                    backgroundColor: 'var(--paper)',
-                    minHeight: '44px',
-                  }}
-                >
+              <div className="field">
+                <label className="field__label">LLM Model</label>
+                <select value={llmModel} onChange={(e) => setLlmModel(e.target.value)} className="input input--paper">
                   <option value="gpt-4o-mini">gpt-4o-mini (Default - Fast & Economical)</option>
                   <option value="gpt-4o">gpt-4o (High intelligence)</option>
                   <option value="claude-3-5-sonnet">claude-3-5-sonnet</option>
@@ -514,85 +368,58 @@ export const CrawlSubmit: React.FC = () => {
               </div>
             )}
 
-            {/* Threshold Range */}
             {judge !== 'none' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>Relevance Threshold</label>
+              <div className="field">
+                <div className="range-row__head">
+                  <label className="field__label">Relevance Threshold</label>
                   <span className="mono" style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{contentThreshold.toFixed(2)}</span>
                 </div>
-                <input
-                  type="range"
-                  min="0.0"
-                  max="1.0"
-                  step="0.05"
-                  value={contentThreshold}
-                  onChange={(e) => setContentThreshold(Number(e.target.value))}
-                  style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
-                />
+                <input type="range" min="0.0" max="1.0" step="0.05" value={contentThreshold} onChange={(e) => setContentThreshold(Number(e.target.value))} className="range" />
               </div>
             )}
           </div>
         </div>
 
-        {/* Policy Switches */}
-        <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--r-panel)', padding: '16px', backgroundColor: 'var(--surface)' }}>
-          <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, marginBottom: '12px' }}>Crawler Policy Switches</h2>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-              <input type="checkbox" checked={saturation} onChange={(e) => setSaturation(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--accent)' }} />
+        <div className="form-section">
+          <h2 className="form-section__title">Crawler Policy Switches</h2>
+          <div className="form-section__body">
+            <label className="switch">
+              <input type="checkbox" className="switch__box" checked={saturation} onChange={(e) => setSaturation(e.target.checked)} />
               <div>
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, display: 'block' }}>Novelty Saturation Stop</span>
-                <span style={{ fontSize: 'var(--text-caption)', color: 'var(--ink-muted)' }}>Halts crawl if content duplicates overlap</span>
+                <span className="switch__title">Novelty Saturation Stop</span>
+                <span className="switch__desc">Halts crawl if content duplicates overlap</span>
               </div>
             </label>
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-              <input type="checkbox" checked={respectRobotsTxt} onChange={(e) => setRespectRobotsTxt(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--accent)' }} />
+            <label className="switch">
+              <input type="checkbox" className="switch__box" checked={respectRobotsTxt} onChange={(e) => setRespectRobotsTxt(e.target.checked)} />
               <div>
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, display: 'block' }}>Respect Robots.txt</span>
-                <span style={{ fontSize: 'var(--text-caption)', color: 'var(--ink-muted)' }}>Obey robots exclusions (highly recommended)</span>
+                <span className="switch__title">Respect Robots.txt</span>
+                <span className="switch__desc">Obey robots exclusions (highly recommended)</span>
               </div>
             </label>
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-              <input type="checkbox" checked={collapseVersions} onChange={(e) => setCollapseVersions(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--accent)' }} />
+            <label className="switch">
+              <input type="checkbox" className="switch__box" checked={collapseVersions} onChange={(e) => setCollapseVersions(e.target.checked)} />
               <div>
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, display: 'block' }}>Collapse Documentation Versions</span>
-                <span style={{ fontSize: 'var(--text-caption)', color: 'var(--ink-muted)' }}>Prevents crawling duplicate versioned paths</span>
+                <span className="switch__title">Collapse Documentation Versions</span>
+                <span className="switch__desc">Prevents crawling duplicate versioned paths</span>
               </div>
             </label>
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-              <input type="checkbox" checked={pinLocales} onChange={(e) => setPinLocales(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--accent)' }} />
+            <label className="switch">
+              <input type="checkbox" className="switch__box" checked={pinLocales} onChange={(e) => setPinLocales(e.target.checked)} />
               <div>
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, display: 'block' }}>Pin Locales</span>
-                <span style={{ fontSize: 'var(--text-caption)', color: 'var(--ink-muted)' }}>Rejects localized paths not in target locales</span>
+                <span className="switch__title">Pin Locales</span>
+                <span className="switch__desc">Rejects localized paths not in target locales</span>
               </div>
             </label>
           </div>
         </div>
 
-        {/* LLM Cost Estimate Box */}
         {judge === 'llm' && (
-          <div
-            style={{
-              border: '1px solid var(--line)',
-              borderRadius: 'var(--r-panel)',
-              padding: '12px 16px',
-              backgroundColor: 'var(--accent-weak)',
-              display: 'flex',
-              gap: '12px',
-              alignItems: 'flex-start',
-            }}
-          >
+          <div className="cost-estimate">
             <Sparkles size={18} color="var(--accent)" style={{ marginTop: '2px', flexShrink: 0 }} />
             <div>
-              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--accent)', marginBottom: '2px' }}>
-                LLM Evaluation Cost Estimate
-              </h3>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--ink)', lineHeight: '1.4' }}>
+              <h3 className="cost-estimate__title">LLM Evaluation Cost Estimate</h3>
+              <p className="cost-estimate__body">
                 Selected model <strong className="mono">{llmModel}</strong> carries an estimated ceiling rate of{' '}
                 <strong>${estimatedCost.toFixed(5)}</strong> for evaluating up to {maxPages} pages (~{totalEstimatedTokens.toLocaleString()} tokens).
               </p>
@@ -600,18 +427,12 @@ export const CrawlSubmit: React.FC = () => {
           </div>
         )}
 
-        {/* Submit */}
-        <div style={{ marginTop: '8px' }}>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={mutation.isPending || !url}
-            style={{ width: '100%', minHeight: '44px', fontSize: 'var(--text-base)' }}
-          >
+        <div className="crawl-submit__submit">
+          <Button type="submit" variant="primary" disabled={mutation.isPending || !url} style={{ width: '100%', minHeight: '44px', fontSize: 'var(--text-base)' }}>
             {mutation.isPending ? 'Submitting Crawl…' : 'Start Crawl'}
           </Button>
           {mutation.isError && (
-            <div style={{ display: 'flex', gap: '8px', color: 'var(--failed)', marginTop: '8px', fontSize: 'var(--text-sm)' }}>
+            <div className="crawl-submit__error">
               <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
               <span>Failed to submit crawl: {mutation.error.message}</span>
             </div>

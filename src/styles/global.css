@@ -1,5 +1,6 @@
 @import "./tokens.css";
 @import "./typography.css";
+@import "./patterns.css";
 
 * {
   box-sizing: border-box;
@@ -76,12 +77,8 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Loading skeletal shimmer */
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .skeleton {
@@ -97,13 +94,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pulse {
-    animation: none;
-  }
-  .skeleton {
-    animation: none;
-    background: var(--surface-2);
-  }
+  .pulse { animation: none; }
+  .skeleton { animation: none; background: var(--surface-2); }
   * {
     animation-delay: 0s !important;
     animation-duration: 0s !important;

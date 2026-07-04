@@ -1,0 +1,66 @@
+.page-viewer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  background-color: var(--surface);
+  border-left: 1px solid var(--line);
+  box-shadow: -4px 0 16px oklch(0% 0 0 / 8%);
+  font-family: var(--font-sans);
+}
+
+.page-viewer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-16);
+  border-bottom: 1px solid var(--line);
+  background-color: var(--surface-2);
+}
+.page-viewer__tabs { display: flex; gap: var(--space-8); }
+.page-viewer__tools { display: flex; align-items: center; gap: var(--space-8); }
+
+.page-viewer__body { flex: 1; overflow-y: auto; padding: var(--space-24) 20px; line-break: anywhere; }
+.page-viewer__md { font-size: var(--text-base); line-height: 1.6; }
+.page-viewer__raw {
+  white-space: pre-wrap;
+  padding: var(--space-16);
+  border: 1px solid var(--line);
+  border-radius: var(--r-cell);
+  background-color: var(--surface-2);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.provenance {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-12) var(--space-16);
+  border-top: 1px solid var(--line);
+  background-color: var(--surface-2);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+}
+.provenance__row { display: flex; justify-content: space-between; }
+.provenance__val { color: var(--ink); }
+.provenance__val--url { max-width: 70%; text-align: right; word-break: break-all; }
+
+/* Rendered markdown */
+.prose-content h1 { margin-top: var(--space-16); margin-bottom: var(--space-12); padding-bottom: var(--space-4); border-bottom: 1px solid var(--line); font-size: 22px; }
+.prose-content h2 { margin-top: 14px; margin-bottom: 10px; font-size: 18px; }
+.prose-content h3 { margin-top: var(--space-12); margin-bottom: var(--space-8); font-size: 16px; }
+.prose-content p { margin-bottom: var(--space-12); }
+.prose-content ul, .prose-content ol { margin-left: 20px; margin-bottom: var(--space-12); }
+.prose-content li { margin-bottom: var(--space-4); }
+.prose-content code { padding: 2px var(--space-4); border-radius: 3px; background-color: var(--surface-2); font-size: var(--text-sm); }
+.prose-content pre code { padding: 0; background: none; }
+.prose-content pre { margin-bottom: var(--space-12); padding: var(--space-12); border: 1px solid var(--line); border-radius: var(--r-cell); background-color: var(--surface-2); overflow-x: auto; }
+.prose-content blockquote { margin-bottom: var(--space-12); padding-left: var(--space-12); border-left: 3px solid var(--line); color: var(--ink-muted); }

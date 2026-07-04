@@ -7,15 +7,8 @@ import { StatusPill } from '../../components/ui/StatusPill';
 import type { StatusType } from '../../components/ui/StatusPill';
 import { Button } from '../../components/ui/Button';
 import { PageViewer } from './PageViewer';
-import {
-  AlertCircle,
-  RotateCw,
-  Ban,
-  ArrowDown,
-  ArrowUpDown,
-  BookOpen,
-  ArrowLeft
-} from 'lucide-react';
+import { AlertCircle, RotateCw, Ban, ArrowDown, ArrowUpDown, BookOpen, ArrowLeft } from 'lucide-react';
+import './CrawlDetail.css';
 
 interface EventLog {
   timestamp: number;
@@ -39,18 +32,15 @@ export const CrawlDetail: React.FC = () => {
   const feedEndRef = useRef<HTMLDivElement>(null);
   const feedContainerRef = useRef<HTMLDivElement>(null);
 
-  // States
   const [events, setEvents] = useState<EventLog[]>([]);
   const [nextSince, setNextSince] = useState(0);
   const [isAutoScroll, setIsAutoScroll] = useState(true);
   const [showJumpButton, setShowJumpButton] = useState(false);
   const [selectedPage, setSelectedPage] = useState<PageOut | null>(null);
-  
-  // Sorting state for pages
+
   const [sortBy, setSortBy] = useState<'score' | 'tokens' | 'depth'>('score');
   const [sortDesc, setSortDesc] = useState(true);
 
-  // Query Job Details (polls status every 2 seconds if job is active)
   const { data: job, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => api.getJob(jobId || ''),
@@ -61,7 +51,6 @@ export const CrawlDetail: React.FC = () => {
     enabled: !!jobId,
   });
 
-  // Mutation to Cancel Job
   const cancelMutation = useMutation({
     mutationFn: () => api.cancelJob(jobId || ''),
     onSuccess: () => {
@@ -69,7 +58,6 @@ export const CrawlDetail: React.FC = () => {
     },
   });
 
-  // Incremental Events Polling
   useEffect(() => {
     if (!jobId) return;
 
@@ -78,7 +66,6 @@ export const CrawlDetail: React.FC = () => {
       try {
         const data = await api.getJobEvents(jobId, nextSince);
         if (!active) return;
-
         if (data.events.length > 0) {
           setEvents((prev) => [...prev, ...data.events]);
           setNextSince(data.next_since);
@@ -88,10 +75,8 @@ export const CrawlDetail: React.FC = () => {
       }
     };
 
-    // Initial poll
     pollEvents();
 
-    // Setup interval (poll faster during running state)
     const isRunning = job && ['queued', 'running'].includes(job.status);
     const interval = setInterval(pollEvents, isRunning ? 1000 : 3000);
 
@@ -101,7 +86,6 @@ export const CrawlDetail: React.FC = () => {
     };
   }, [jobId, nextSince, job?.status]);
 
-  // Reset state when job ID changes
   useEffect(() => {
     setEvents([]);
     setNextSince(0);
@@ -110,21 +94,17 @@ export const CrawlDetail: React.FC = () => {
     setShowJumpButton(false);
   }, [jobId]);
 
-  // Handle Scroll to Bottom
   useEffect(() => {
     if (isAutoScroll && feedEndRef.current) {
       feedEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [events, isAutoScroll]);
 
-  // Monitor user scrolling to toggle Auto-Scroll
   const handleScroll = () => {
     const el = feedContainerRef.current;
     if (!el) return;
-    // Check if scrolled within 40px of bottom
     const offset = 40;
     const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= offset;
-    
     setIsAutoScroll(isAtBottom);
     setShowJumpButton(!isAtBottom);
   };
@@ -137,7 +117,6 @@ export const CrawlDetail: React.FC = () => {
     }
   };
 
-  // Sort pages
   const handleSort = (field: 'score' | 'tokens' | 'depth') => {
     if (sortBy === field) {
       setSortDesc(!sortDesc);
@@ -150,7 +129,6 @@ export const CrawlDetail: React.FC = () => {
   const sortedPages = [...(job?.pages || [])].sort((a, b) => {
     let valA = 0;
     let valB = 0;
-
     if (sortBy === 'score') {
       valA = a.relevance_score ?? 0;
       valB = b.relevance_score ?? 0;
@@ -161,7 +139,6 @@ export const CrawlDetail: React.FC = () => {
       valA = a.depth ?? 0;
       valB = b.depth ?? 0;
     }
-
     if (valA === valB) return 0;
     return sortDesc ? (valA < valB ? 1 : -1) : (valA > valB ? 1 : -1);
   });
@@ -206,9 +183,9 @@ export const CrawlDetail: React.FC = () => {
 
   if (isLoading && !job) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 8px' }}>
+      <div className="crawl-detail">
         <div className="skeleton" style={{ height: '80px', width: '100%' }} />
-        <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '16px', height: '500px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 'var(--space-16)', height: '500px' }}>
           <div className="skeleton" style={{ height: '100%' }} />
           <div className="skeleton" style={{ height: '100%' }} />
         </div>
@@ -218,17 +195,17 @@ export const CrawlDetail: React.FC = () => {
 
   if (isError) {
     return (
-      <div style={{ padding: '16px 8px', color: 'var(--failed)' }}>
-        <div style={{ display: 'flex', gap: '8px', border: '1px solid var(--failed)', padding: '16px', borderRadius: 'var(--r-panel)', backgroundColor: 'var(--failed-weak)' }}>
+      <div className="crawl-detail">
+        <div className="callout-error">
           <AlertCircle size={20} />
           <div>
-            <h3 style={{ fontWeight: 600 }}>Error loading crawl job</h3>
-            <p>{(error as Error).message}</p>
+            <h3 className="callout-error__title">Error loading crawl job</h3>
+            <p className="callout-error__body">{(error as Error).message}</p>
           </div>
         </div>
-        <Button onClick={() => navigate('/crawl')} style={{ marginTop: '16px' }}>
-          Back to list
-        </Button>
+        <div>
+          <Button onClick={() => navigate('/crawl')}>Back to list</Button>
+        </div>
       </div>
     );
   }
@@ -238,30 +215,22 @@ export const CrawlDetail: React.FC = () => {
   const isJobActive = ['queued', 'running'].includes(job.status);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px', padding: '8px 4px' }}>
-      
-      {/* Detail Header */}
-      <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--r-panel)', padding: '16px', backgroundColor: 'var(--surface)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxWidth: '70%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Link to="/crawl" style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--ink-muted)' }}>
+    <div className="crawl-detail">
+      <div className="crawl-detail__header">
+        <div className="crawl-detail__header-main">
+          <div className="crawl-detail__title-row">
+            <Link to="/crawl" className="crawl-detail__back">
               <ArrowLeft size={16} />
             </Link>
-            <h1 className="mono" style={{ fontSize: 'var(--text-lg)', fontWeight: 600 }}>{job.job_id}</h1>
+            <h1 className="crawl-detail__id mono">{job.job_id}</h1>
             <StatusPill status={job.status} />
           </div>
-          <span className="mono" style={{ fontSize: 'var(--text-sm)', color: 'var(--ink-muted)', wordBreak: 'break-all' }}>
-            {job.url}
-          </span>
+          <span className="crawl-detail__url mono">{job.url}</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="crawl-detail__actions">
           {isJobActive && (
-            <Button
-              variant="destructive"
-              onClick={() => cancelMutation.mutate()}
-              disabled={cancelMutation.isPending}
-            >
+            <Button variant="destructive" onClick={() => cancelMutation.mutate()} disabled={cancelMutation.isPending}>
               <Ban size={14} />
               Cancel Crawl
             </Button>
@@ -272,61 +241,29 @@ export const CrawlDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Layout Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '16px', minHeight: '0', flex: 1, overflow: 'hidden' }}>
-        
-        {/* Left Column: Frontier Feed */}
-        <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--line)', borderRadius: 'var(--r-panel)', backgroundColor: 'var(--surface)', overflow: 'hidden', position: 'relative' }}>
-          <div style={{ borderBottom: '1px solid var(--line)', padding: '8px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: 'var(--text-base)', fontWeight: 600 }}>Frontier decisions log</h2>
-            <span style={{ fontSize: 'var(--text-caption)', color: 'var(--ink-muted)' }} className="mono">
-              events: {events.length} · pages fetched: {job.pages_fetched}
-            </span>
+      <div className="crawl-detail__grid">
+        {/* Frontier feed */}
+        <div className="crawl-detail__pane">
+          <div className="panel__head">
+            <h2 className="panel__title">Frontier decisions log</h2>
+            <span className="panel__meta mono">events: {events.length} · pages fetched: {job.pages_fetched}</span>
           </div>
 
-          {/* Scrolling Container */}
-          <div
-            ref={feedContainerRef}
-            onScroll={handleScroll}
-            style={{ flex: 1, overflowY: 'auto', padding: '12px 0', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-caption)' }}
-          >
+          <div ref={feedContainerRef} onScroll={handleScroll} className="feed">
             {events.length === 0 ? (
-              <div style={{ padding: '32px 16px', color: 'var(--ink-muted)', textAlign: 'center', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)' }}>
-                {isJobActive ? 'Waiting for crawl events…' : 'No crawl events recorded.'}
-              </div>
+              <div className="feed__empty">{isJobActive ? 'Waiting for crawl events…' : 'No crawl events recorded.'}</div>
             ) : (
               events.map((event, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    padding: '4px 16px',
-                    gap: '12px',
-                    backgroundColor: getEventBgColor(event.verdict),
-                    borderBottom: '1px solid var(--line)',
-                    transition: 'opacity var(--dur) var(--ease-out)',
-                  }}
-                  className="feed-row"
-                >
-                  {/* Timestamp */}
-                  <span style={{ color: 'var(--ink-muted)', flexShrink: 0, width: '70px' }}>
+                <div key={idx} className="feed-row" style={{ backgroundColor: getEventBgColor(event.verdict) }}>
+                  <span className="feed-row__time">
                     {new Date(event.timestamp * 1000).toLocaleTimeString(undefined, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </span>
-                  
-                  {/* Verdict Pill */}
-                  <span style={{ flexShrink: 0, width: '85px' }}>
+                  <span className="feed-row__pill">
                     <StatusPill status={event.verdict} style={{ border: 'none', padding: '0 4px', fontSize: '10px' }} />
                   </span>
-
-                  {/* URL & Reason */}
-                  <div style={{ flex: 1, minWidth: '0', display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ color: 'var(--ink)', wordBreak: 'break-all', fontWeight: 500 }} title={event.url}>
-                      {middleTruncate(event.url)}
-                    </span>
-                    <span style={{ color: 'var(--ink-muted)', fontSize: '10px', marginTop: '1px' }}>
-                      {getVerdictReason(event)}
-                    </span>
+                  <div className="feed-row__body">
+                    <span className="feed-row__url" title={event.url}>{middleTruncate(event.url)}</span>
+                    <span className="feed-row__reason">{getVerdictReason(event)}</span>
                   </div>
                 </div>
               ))
@@ -334,81 +271,37 @@ export const CrawlDetail: React.FC = () => {
             <div ref={feedEndRef} />
           </div>
 
-          {/* Float Jump Button */}
           {showJumpButton && (
-            <button
-              onClick={jumpToLatest}
-              style={{
-                position: 'absolute',
-                bottom: '16px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                backgroundColor: 'var(--accent)',
-                color: 'oklch(100% 0 0)',
-                border: 'none',
-                borderRadius: 'var(--r-pill)',
-                padding: '6px 16px',
-                fontSize: 'var(--text-sm)',
-                fontWeight: 500,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 2px 8px oklch(0% 0 0 / 20%)',
-                fontFamily: 'var(--font-sans)',
-              }}
-            >
+            <button onClick={jumpToLatest} className="jump-btn">
               <ArrowDown size={14} />
               Jump to latest
             </button>
           )}
         </div>
 
-        {/* Right Column: Kept Pages List */}
-        <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--line)', borderRadius: 'var(--r-panel)', backgroundColor: 'var(--surface)', overflow: 'hidden' }}>
-          <div style={{ borderBottom: '1px solid var(--line)', padding: '8px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: 'var(--text-base)', fontWeight: 600 }}>Extracted Pages</h2>
-            <span style={{ fontSize: 'var(--text-caption)', color: 'var(--ink-muted)' }} className="mono">
-              kept: {job.pages?.length || 0}
-            </span>
+        {/* Kept pages */}
+        <div className="crawl-detail__pane">
+          <div className="panel__head">
+            <h2 className="panel__title">Extracted Pages</h2>
+            <span className="panel__meta mono">kept: {job.pages?.length || 0}</span>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div className="pages">
             {sortedPages.length === 0 ? (
-              <div style={{ padding: '48px 16px', color: 'var(--ink-muted)', textAlign: 'center', fontSize: 'var(--text-sm)' }}>
-                No kept pages found.
-              </div>
+              <div className="pages__empty">No kept pages found.</div>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>
+              <table className="data-table">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--line)', color: 'var(--ink-muted)', fontSize: 'var(--text-caption)' }}>
-                    <th style={{ padding: '6px 12px', textAlign: 'left' }}>URL Path</th>
-                    <th
-                      style={{ padding: '6px 12px', textAlign: 'right', cursor: 'pointer', userSelect: 'none' }}
-                      onClick={() => handleSort('score')}
-                    >
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        Score
-                        <ArrowUpDown size={12} />
-                      </div>
+                  <tr>
+                    <th>URL Path</th>
+                    <th className="data-table__num pages__sort" onClick={() => handleSort('score')}>
+                      <span className="pages__sort-inner">Score <ArrowUpDown size={12} /></span>
                     </th>
-                    <th
-                      style={{ padding: '6px 12px', textAlign: 'right', cursor: 'pointer', userSelect: 'none' }}
-                      onClick={() => handleSort('tokens')}
-                    >
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        Tokens
-                        <ArrowUpDown size={12} />
-                      </div>
+                    <th className="data-table__num pages__sort" onClick={() => handleSort('tokens')}>
+                      <span className="pages__sort-inner">Tokens <ArrowUpDown size={12} /></span>
                     </th>
-                    <th
-                      style={{ padding: '6px 12px', textAlign: 'right', cursor: 'pointer', userSelect: 'none' }}
-                      onClick={() => handleSort('depth')}
-                    >
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        Depth
-                        <ArrowUpDown size={12} />
-                      </div>
+                    <th className="data-table__num pages__sort" onClick={() => handleSort('depth')}>
+                      <span className="pages__sort-inner">Depth <ArrowUpDown size={12} /></span>
                     </th>
                   </tr>
                 </thead>
@@ -416,29 +309,17 @@ export const CrawlDetail: React.FC = () => {
                   {sortedPages.map((page, idx) => {
                     const parsedUrl = new URL(page.url);
                     const pathName = parsedUrl.pathname + parsedUrl.search;
-                    
                     return (
-                      <tr
-                        key={idx}
-                        onClick={() => setSelectedPage(page)}
-                        style={{ borderBottom: '1px solid var(--line)', cursor: 'pointer' }}
-                        className="table-row-hover"
-                      >
-                        <td style={{ padding: '8px 12px', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={page.url}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <tr key={idx} className="table-row-hover" onClick={() => setSelectedPage(page)}>
+                        <td className="pages__path-cell" title={page.url}>
+                          <div className="pages__path">
                             <BookOpen size={13} style={{ color: 'var(--ink-muted)', flexShrink: 0 }} />
                             <span className="mono" style={{ fontWeight: 500 }}>{pathName}</span>
                           </div>
                         </td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right' }} className="mono">
-                          {(page.relevance_score ?? 1.0).toFixed(2)}
-                        </td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--ink-muted)' }} className="mono">
-                          {(page.token_estimate ?? 0).toLocaleString()}
-                        </td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--ink-muted)' }} className="mono">
-                          {page.depth}
-                        </td>
+                        <td className="data-table__num mono">{(page.relevance_score ?? 1.0).toFixed(2)}</td>
+                        <td className="data-table__num mono text-muted">{(page.token_estimate ?? 0).toLocaleString()}</td>
+                        <td className="data-table__num mono text-muted">{page.depth}</td>
                       </tr>
                     );
                   })}
@@ -449,10 +330,7 @@ export const CrawlDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Side Slide-Over Page Viewer */}
-      {selectedPage && (
-        <PageViewer page={selectedPage} onClose={() => setSelectedPage(null)} />
-      )}
+      {selectedPage && <PageViewer page={selectedPage} onClose={() => setSelectedPage(null)} />}
     </div>
   );
 };

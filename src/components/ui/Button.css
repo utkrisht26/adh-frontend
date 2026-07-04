@@ -1,0 +1,41 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-cell);
+  background-color: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--accent);
+  color: oklch(100% 0 0);
+  border-color: var(--accent);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--ink);
+  border-color: transparent;
+}
+
+.btn-destructive {
+  background-color: var(--failed);
+  color: oklch(100% 0 0);
+  border-color: var(--failed);
+}

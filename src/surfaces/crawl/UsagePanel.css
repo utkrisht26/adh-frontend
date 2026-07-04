@@ -1,0 +1,9 @@
+.usage { max-width: 800px; padding: var(--space-8) var(--space-4); }
+.usage__metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-16);
+  margin-bottom: var(--space-24);
+}
+.usage__table-title { margin-bottom: var(--space-16); }
+.usage__cell-status { text-transform: capitalize; font-weight: 500; }
