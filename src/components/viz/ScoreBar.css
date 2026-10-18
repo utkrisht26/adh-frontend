@@ -1,0 +1,45 @@
+.score-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.score-bar__track {
+  flex: 1;
+  height: 8px;
+  background-color: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-cell);
+  position: relative;
+  overflow: hidden;
+}
+
+.score-bar__fill {
+  height: 100%;
+  transition: width var(--dur) var(--ease-out);
+}
+
+.score-bar--pass .score-bar__fill {
+  background-color: var(--kept);
+}
+
+.score-bar--fail .score-bar__fill {
+  background-color: var(--failed);
+}
+
+.score-bar__threshold {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--ink);
+  z-index: 2;
+}
+
+.score-bar__value {
+  font-size: var(--text-sm);
+  color: var(--ink);
+  min-width: 28px;
+  text-align: right;
+}

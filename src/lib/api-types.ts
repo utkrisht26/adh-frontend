@@ -41,6 +41,13 @@ export interface paths {
     /** Get Run */
     get: operations["get_run_api_runs__run_id__get"];
   };
+  "/api/runs/{run_id}/events": {
+    /**
+     * Get Run Events
+     * @description Ordered, durable execution events; ``after`` supports live polling.
+     */
+    get: operations["get_run_events_api_runs__run_id__events_get"];
+  };
   "/api/runs/{run_id}/approve": {
     /** Approve Run */
     post: operations["approve_run_api_runs__run_id__approve_post"];
@@ -48,6 +55,47 @@ export interface paths {
   "/api/runs/{run_id}/cancel": {
     /** Cancel Run */
     post: operations["cancel_run_api_runs__run_id__cancel_post"];
+  };
+  "/api/runs/{run_id}/spec": {
+    /**
+     * Get Run Spec
+     * @description The run's saved spec — the prefill source for edit-and-restart.
+     */
+    get: operations["get_run_spec_api_runs__run_id__spec_get"];
+  };
+  "/api/runs/{run_id}/restart": {
+    /**
+     * Restart Run
+     * @description Start a NEW run from a finished (terminal) one — same saved spec, or an
+     * edited one passed as ``{"spec": {...}}`` in the body.
+     */
+    post: operations["restart_run_api_runs__run_id__restart_post"];
+  };
+  "/api/runs/{run_id}/build": {
+    /**
+     * Build Run
+     * @description Kick off Engine B (synthesis + curation) over a succeeded run's corpus.
+     */
+    post: operations["build_run_api_runs__run_id__build_post"];
+  };
+  "/api/runs/{run_id}/dataset": {
+    /**
+     * Get Dataset
+     * @description The Engine B summary once a dataset has been built, else 404.
+     */
+    get: operations["get_dataset_api_runs__run_id__dataset_get"];
+  };
+  "/api/specs/schema": {
+    /** Schema */
+    get: operations["schema_api_specs_schema_get"];
+  };
+  "/api/specs/validate": {
+    /** Validate */
+    post: operations["validate_api_specs_validate_post"];
+  };
+  "/api/specs/import": {
+    /** Import Yaml */
+    post: operations["import_yaml_api_specs_import_post"];
   };
   "/api/healthz": {
     /** Healthz */
@@ -117,7 +165,7 @@ export interface components {
       judge?: "none" | "bm25" | "llm";
       /**
        * Llm Model
-       * @default anthropic:claude-haiku-4-5
+       * @default openai:gpt-4o-mini
        */
       llm_model?: string;
       /**
@@ -181,6 +229,11 @@ export interface components {
       /** Channels */
       channels?: components["schemas"]["SourceChannel"][];
       constraints?: components["schemas"]["DiscoveryConstraints"];
+      /**
+       * Allow Unknown Licenses
+       * @default false
+       */
+      allow_unknown_licenses?: boolean;
     };
     /**
      * DiscoveryConstraints
@@ -198,6 +251,14 @@ export interface components {
        * @default true
        */
       respect_robots_txt?: boolean;
+      /** Media Min Duration S */
+      media_min_duration_s?: number | null;
+      /** Media Max Duration S */
+      media_max_duration_s?: number | null;
+      /** Media Orientation */
+      media_orientation?: string | null;
+      /** Media Types */
+      media_types?: string[] | null;
     };
     /**
      * DiscoveryMode
@@ -258,7 +319,7 @@ export interface components {
      * JobSpec
      * @description A request to build a dataset. The requester gives a goal — not sources.
      */
-    JobSpec: {
+    "JobSpec-Input": {
       /** Job Id */
       job_id?: string | null;
       /** Name */
@@ -287,11 +348,8 @@ export interface components {
       discovery?: components["schemas"]["Discovery"];
       /** Allowed Licenses */
       allowed_licenses: string[];
-      /**
-       * Pii Policy
-       * @default redact
-       */
-      pii_policy?: string;
+      /** Pii Policy */
+      pii_policy?: ("redact" | "drop" | "allow") | null;
       /** Generator Models */
       generator_models: string[];
       judge_config?: components["schemas"]["JudgeConfig"] | null;
@@ -312,6 +370,88 @@ export interface components {
        * @default parquet
        */
       output_format?: string;
+      /**
+       * Delivery Layout
+       * @default hf
+       */
+      delivery_layout?: string;
+      /** Splits */
+      splits?: {
+        [key: string]: unknown;
+      };
+      /** Output License */
+      output_license: string;
+      /** Distribution Target */
+      distribution_target?: string | null;
+      /** Maintainer */
+      maintainer?: string | null;
+      /**
+       * Emit Datasheet
+       * @default true
+       */
+      emit_datasheet?: boolean;
+      limits?: components["schemas"]["Limits"];
+    };
+    /**
+     * JobSpec
+     * @description A request to build a dataset. The requester gives a goal — not sources.
+     */
+    "JobSpec-Output": {
+      /** Job Id */
+      job_id?: string | null;
+      /** Name */
+      name: string;
+      /** Description */
+      description: string;
+      /** Motivation */
+      motivation: string;
+      /** Intended Uses */
+      intended_uses: string[];
+      /** Out Of Scope Uses */
+      out_of_scope_uses?: string[];
+      verifiability_tier: components["schemas"]["VerifiabilityTier"];
+      /** Task Categories */
+      task_categories: string[];
+      /** Languages */
+      languages: string[];
+      /**
+       * Modality
+       * @default text
+       */
+      modality?: string;
+      target_size: components["schemas"]["TargetSize"];
+      /** Record Schema Ref */
+      record_schema_ref: string;
+      discovery?: components["schemas"]["Discovery"];
+      /** Allowed Licenses */
+      allowed_licenses: string[];
+      /** Pii Policy */
+      pii_policy?: ("redact" | "drop" | "allow") | null;
+      /** Generator Models */
+      generator_models: string[];
+      judge_config?: components["schemas"]["JudgeConfig"] | null;
+      /** Generation Params */
+      generation_params?: {
+        [key: string]: unknown;
+      };
+      /**
+       * Diversity Strategy
+       * @default persona+evol
+       */
+      diversity_strategy?: string;
+      dedup_policy?: components["schemas"]["DedupPolicy"];
+      /** Decontaminate Against */
+      decontaminate_against?: string[];
+      /**
+       * Output Format
+       * @default parquet
+       */
+      output_format?: string;
+      /**
+       * Delivery Layout
+       * @default hf
+       */
+      delivery_layout?: string;
       /** Splits */
       splits?: {
         [key: string]: unknown;
@@ -508,6 +648,27 @@ export interface components {
        */
       notes?: string;
     };
+    /** RecordProfile */
+    RecordProfile: {
+      /** Label */
+      label: string;
+      /** Modality */
+      modality: string;
+      /** Record Schema Ref */
+      record_schema_ref: string;
+      /** Verifiability Tier */
+      verifiability_tier: number;
+    };
+    /**
+     * RestartRequest
+     * @description Optional POST body for restart.
+     *
+     * Omitted entirely (or ``{"spec": null}``) restarts with the run's saved
+     * config; a full ``spec`` restarts from that edited config instead.
+     */
+    RestartRequest: {
+      spec?: components["schemas"]["JobSpec-Input"] | null;
+    };
     /** RunOut */
     RunOut: {
       /** Run Id */
@@ -548,10 +709,66 @@ export interface components {
     };
     /**
      * SourceChannel
-     * @description The three Phase 0 acquisition channels, tried reuse > crawl > synthesize.
+     * @description Acquisition channels, tried reuse > crawl > acquire > synthesize.
+     *
+     * Phase 0 shipped three members; ``MEDIA`` (licensed stock-video acquisition
+     * for ``modality="video"`` jobs) was added per the PHASE0-CONTRACT.md §0.3.2
+     * amendment.
      * @enum {string}
      */
-    SourceChannel: "datasets" | "web" | "synthesis";
+    SourceChannel: "datasets" | "web" | "media" | "synthesis";
+    /** SpecBuilderSchema */
+    SpecBuilderSchema: {
+      /** Json Schema */
+      json_schema: {
+        [key: string]: unknown;
+      };
+      /** Defaults */
+      defaults: {
+        [key: string]: unknown;
+      };
+      /** Profiles */
+      profiles: components["schemas"]["RecordProfile"][];
+      /** Model Overrides */
+      model_overrides: {
+        [key: string]: string[];
+      };
+    };
+    /** SpecImportRequest */
+    SpecImportRequest: {
+      /** Yaml Text */
+      yaml_text: string;
+    };
+    /** SpecIssue */
+    SpecIssue: {
+      /** Path */
+      path?: (string | number)[];
+      /** Message */
+      message: string;
+    };
+    /** SpecValidationRequest */
+    SpecValidationRequest: {
+      /** Spec */
+      spec: {
+        [key: string]: unknown;
+      };
+    };
+    /** SpecValidationResult */
+    SpecValidationResult: {
+      /** Valid */
+      valid: boolean;
+      /** Errors */
+      errors?: components["schemas"]["SpecIssue"][];
+      /** Warnings */
+      warnings?: string[];
+      /** Draft */
+      draft?: {
+        [key: string]: unknown;
+      } | null;
+      spec?: components["schemas"]["JobSpec-Output"] | null;
+      /** Yaml Text */
+      yaml_text?: string | null;
+    };
     /**
      * TargetSize
      * @description Either a record count or a token budget (§0.3 ``target_size``).
@@ -561,6 +778,37 @@ export interface components {
       records?: number | null;
       /** Tokens */
       tokens?: number | null;
+    };
+    /** TelemetryEventOut */
+    TelemetryEventOut: {
+      /** Schema Version */
+      schema_version: number;
+      /** Sequence */
+      sequence: number;
+      /** Event Id */
+      event_id: string;
+      /** Timestamp */
+      timestamp: string;
+      /** Run Id */
+      run_id: string;
+      /** Job Id */
+      job_id?: string | null;
+      /** Phase */
+      phase: string;
+      /** Event */
+      event: string;
+      /** Status */
+      status: string;
+      /** Operation Id */
+      operation_id?: string | null;
+      /** Parent Operation Id */
+      parent_operation_id?: string | null;
+      /** Duration Ms */
+      duration_ms?: number | null;
+      /** Attributes */
+      attributes?: {
+        [key: string]: unknown;
+      };
     };
     /** ValidationError */
     ValidationError: {
@@ -763,7 +1011,7 @@ export interface operations {
   submit_run_api_runs_post: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["JobSpec"];
+        "application/json": components["schemas"]["JobSpec-Input"];
       };
     };
     responses: {
@@ -785,6 +1033,7 @@ export interface operations {
   get_run_api_runs__run_id__get: {
     parameters: {
       path: {
+        /** @description Safe run-directory identifier returned by POST /api/runs */
         run_id: string;
       };
     };
@@ -803,10 +1052,41 @@ export interface operations {
       };
     };
   };
+  /**
+   * Get Run Events
+   * @description Ordered, durable execution events; ``after`` supports live polling.
+   */
+  get_run_events_api_runs__run_id__events_get: {
+    parameters: {
+      query?: {
+        after?: number;
+        limit?: number;
+      };
+      path: {
+        /** @description Safe run-directory identifier returned by POST /api/runs */
+        run_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["TelemetryEventOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   /** Approve Run */
   approve_run_api_runs__run_id__approve_post: {
     parameters: {
       path: {
+        /** @description Safe run-directory identifier returned by POST /api/runs */
         run_id: string;
       };
     };
@@ -834,6 +1114,7 @@ export interface operations {
   cancel_run_api_runs__run_id__cancel_post: {
     parameters: {
       path: {
+        /** @description Safe run-directory identifier returned by POST /api/runs */
         run_id: string;
       };
     };
@@ -842,6 +1123,173 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["RunSummaryOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get Run Spec
+   * @description The run's saved spec — the prefill source for edit-and-restart.
+   */
+  get_run_spec_api_runs__run_id__spec_get: {
+    parameters: {
+      path: {
+        /** @description Safe run-directory identifier returned by POST /api/runs */
+        run_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["JobSpec-Output"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Restart Run
+   * @description Start a NEW run from a finished (terminal) one — same saved spec, or an
+   * edited one passed as ``{"spec": {...}}`` in the body.
+   */
+  restart_run_api_runs__run_id__restart_post: {
+    parameters: {
+      path: {
+        /** @description Safe run-directory identifier returned by POST /api/runs */
+        run_id: string;
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["RestartRequest"] | null;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        content: {
+          "application/json": components["schemas"]["RunSummaryOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Build Run
+   * @description Kick off Engine B (synthesis + curation) over a succeeded run's corpus.
+   */
+  build_run_api_runs__run_id__build_post: {
+    parameters: {
+      path: {
+        /** @description Safe run-directory identifier returned by POST /api/runs */
+        run_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        content: {
+          "application/json": components["schemas"]["RunSummaryOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get Dataset
+   * @description The Engine B summary once a dataset has been built, else 404.
+   */
+  get_dataset_api_runs__run_id__dataset_get: {
+    parameters: {
+      path: {
+        /** @description Safe run-directory identifier returned by POST /api/runs */
+        run_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": {
+            [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Schema */
+  schema_api_specs_schema_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["SpecBuilderSchema"];
+        };
+      };
+    };
+  };
+  /** Validate */
+  validate_api_specs_validate_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SpecValidationRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["SpecValidationResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Import Yaml */
+  import_yaml_api_specs_import_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SpecImportRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["SpecValidationResult"];
         };
       };
       /** @description Validation Error */

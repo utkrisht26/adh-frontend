@@ -1,0 +1,15 @@
+.runs-list { min-width: 0; }
+.review-banner { display: flex; align-items: center; gap: 16px; border: 1px solid var(--line); background: var(--accent-weak); padding: 18px 20px; border-radius: var(--r-panel); margin-bottom: 28px; color: var(--accent); }
+.review-banner > svg { flex-shrink: 0; }
+.review-banner > svg:last-child { margin-left: auto; }
+.review-banner strong { font-size: var(--text-sm); font-weight: 500; display: block; }
+.review-banner span { display: block; color: var(--ink-muted); font-size: var(--text-caption); margin-top: 2px; }
+.runs-table { min-width: 760px; }
+.runs-table td:first-child { max-width: 350px; }
+.runs-table__name { display: block; color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
+.runs-table__id { color: var(--ink-muted); font-size: 11px; display: block; margin-top: 4px; }
+.runs-table__review { display: flex; gap: 4px; align-items: center; font-size: var(--text-caption); margin-top: 6px; }
+.runs-table__outcome { display: block; font-size: var(--text-caption); color: var(--ink-muted); margin-top: 4px; }
+.runs-table tbody tr:hover { background: var(--surface-2); }
+.runs-pagination { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--line); font-size: var(--text-caption); color: var(--ink-muted); }
+.runs-pagination > div { display: flex; gap: 8px; }

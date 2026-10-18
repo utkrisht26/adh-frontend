@@ -1,0 +1,8 @@
+.connection-settings { max-width: 720px; }
+.connection-form { display: grid; gap: var(--space-12); padding: var(--space-24); }
+.connection-form label { font-weight: 500; margin-top: var(--space-8); }
+.connection-form input { min-height: 44px; width: 100%; padding: var(--space-12); border: 1px solid var(--line); background: var(--paper); border-radius: var(--r-cell); }
+.connection-form p { font-size: var(--text-sm); }
+.connection-success { color: var(--kept); display: flex; align-items: center; gap: var(--space-8); }
+.section-heading { display: flex; align-items: center; gap: var(--space-12); margin-bottom: var(--space-8); }
+.section-heading h2 { font-size: var(--text-lg); }

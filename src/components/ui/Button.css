@@ -13,8 +13,7 @@
   font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
-  outline: none;
-  transition: all var(--dur-fast) var(--ease-out);
+  transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
 }
 
 .btn:disabled {
@@ -23,9 +22,9 @@
 }
 
 .btn-primary {
-  background-color: var(--accent);
+  background-color: var(--action);
   color: oklch(100% 0 0);
-  border-color: var(--accent);
+  border-color: var(--action);
 }
 
 .btn-ghost {

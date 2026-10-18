@@ -1,32 +1,49 @@
-# React + TypeScript + Vite
+# ADH Console
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + TypeScript + Vite operator console for AgenticDatasetHarness.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Run the backend with `adh serve` on port 8000, then:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+npm install --legacy-peer-deps
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Vite proxies `/api` to the backend. `npm run build` produces `dist`, which the
+sibling backend can serve from the same origin. `npm run lint` runs Oxlint.
+The legacy peer option accommodates the existing lucide-react/React peer range.
+
+## Job Spec Builder
+
+`/spec` is the full contract-driven editor. `/discovery/new` and `/runs/:runId/edit`
+reuse it. Features include:
+
+- All Job Spec fields, nested source constraints, generation settings, and budgets.
+- Record profiles for text, code, image, and video with compatible local schemas.
+- Ajv validation against the server's JSON Schema, followed by server validation
+  of cross-field rules and schema/verification requirements.
+- YAML/JSON import, validated YAML export, and local browser draft save/restore.
+- Validation and warning review before discovery or restart; saved settings are
+  preserved when editing an existing run.
+
+The backend serves `GET /api/specs/schema`, `POST /api/specs/validate`, and
+`POST /api/specs/import`. Deployment model overrides are shown in the editor.
+Relative schema paths refer to files on the backend server.
+
+`npm run gen:api` refreshes the gateway contract snapshot in `openapi.json` and
+regenerates `src/lib/api-types.ts` from the sibling backend. Do not hand-edit those types.
+
+## Browser acceptance tests
+
+The sibling backend owns browser tests that connect the built frontend to its real
+API through TestClient, with offline discovery and crawl doubles. No external
+service or model is called. From `AgenticDatasetHarness`:
+
+```sh
+ADH_FRONTEND_DIST=../adh-frontend/dist .venv/bin/pytest tests/test_spec_builder_browser.py -o addopts='' -q
+```
+
+Install Playwright Chromium first. Set `ADH_BROWSER_ARTIFACTS` to retain light/dark
+screenshots at 320, 768, 1024, and 1440 pixels.

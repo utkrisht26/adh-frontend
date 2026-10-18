@@ -1,0 +1,29 @@
+.sparkline {
+  display: inline-flex;
+  vertical-align: middle;
+  background-color: transparent;
+}
+
+.sparkline__svg {
+  overflow: visible;
+}
+
+.sparkline__path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sparkline__dot {
+  fill: var(--accent);
+  stroke: var(--paper);
+  stroke-width: 1px;
+}
+
+.sparkline-empty {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}

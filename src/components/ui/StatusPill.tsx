@@ -8,6 +8,8 @@ import {
   EyeOff,
   ShieldAlert,
   Award,
+  UserCheck,
+  Hammer,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import './StatusPill.css';
@@ -21,10 +23,14 @@ export type StatusType =
   | 'cancelled'
   | 'dropped'
   | 'pruned'
-  | 'saturated';
+  | 'saturated'
+  | 'discovering'
+  | 'awaiting_approval'
+  | 'acquiring'
+  | 'building';
 
 interface StatusPillProps {
-  status: StatusType;
+  status: StatusType | string;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -39,11 +45,17 @@ const CONFIG: Record<StatusType, { modifier: string; Icon: LucideIcon; label: st
   dropped: { modifier: 'dropped', Icon: EyeOff, label: 'dropped' },
   pruned: { modifier: 'pruned', Icon: AlertTriangle, label: 'pruned' },
   saturated: { modifier: 'saturated', Icon: Award, label: 'saturated' },
+  discovering: { modifier: 'running', Icon: Play, label: 'discovering' },
+  awaiting_approval: { modifier: 'running', Icon: UserCheck, label: 'awaiting approval' },
+  acquiring: { modifier: 'running', Icon: Play, label: 'acquiring' },
+  building: { modifier: 'running', Icon: Hammer, label: 'building dataset' },
 };
 
+const PULSING: ReadonlySet<string> = new Set(['running', 'discovering', 'acquiring', 'building']);
+
 export const StatusPill: React.FC<StatusPillProps> = ({ status, className = '', style }) => {
-  const { modifier, Icon, label } = CONFIG[status];
-  const pulse = status === 'running' ? 'pulse' : '';
+  const { modifier, Icon, label } = CONFIG[status as StatusType] || { modifier: 'muted', Icon: Inbox, label: status.replaceAll('_', ' ') };
+  const pulse = PULSING.has(status) ? 'pulse' : '';
   return (
     <div className={`status-pill status-pill--${modifier} ${pulse} ${className}`.trim()} style={style}>
       <Icon size={12} strokeWidth={2.5} aria-hidden="true" />

@@ -1,0 +1,7 @@
+.datasets__table { margin-bottom: var(--space-24); }
+.datasets__table table { min-width: 650px; }
+.datasets__select { display: block; text-align: left; border: 0; padding: 6px 0; min-height: 44px; background: transparent; font-size: var(--text-sm); font-weight: 500; color: var(--accent); cursor: pointer; }
+.datasets__run-id { display: block; font-size: 11px; color: var(--ink-muted); }
+.datasets__selected { background: var(--accent-weak); }
+.datasets__hint { color: var(--ink-muted); padding: var(--space-24); border: 1px dashed var(--line); border-radius: var(--r-panel); }
+.datasets__detail-title { font-size: var(--text-lg); margin-bottom: var(--space-16); overflow-wrap: anywhere; }
